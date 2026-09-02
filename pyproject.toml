@@ -11,6 +11,7 @@ dependencies = [
     "tifffile>=2024.8",
     "pyyaml>=6.0",
     "tqdm>=4.66",
+    "muscopy[cuda]",
 ]
 
 [build-system]
@@ -26,6 +27,9 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
+
+[tool.uv.sources]
+muscopy = { git = "ssh://git@github.com/Ideguchi-Lab/muscopy.git" }
 
 [dependency-groups]
 dev = [
