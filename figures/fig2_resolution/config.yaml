@@ -1,0 +1,11 @@
+# Parameters for Fig. X. Keep units in the key name or a comment.
+figure_id: fig2
+data:
+  raw: fig2/raw_holograms.tif
+reconstruction:
+  wavelength_um: 0.532
+  na: 1.2
+  pixel_size_um: 0.1
+plot:
+  vmin: 1.33
+  vmax: 1.40

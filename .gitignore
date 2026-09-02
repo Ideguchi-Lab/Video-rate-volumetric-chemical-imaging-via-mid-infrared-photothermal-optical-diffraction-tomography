@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.ruff_cache/
+.pytest_cache/
+
+# Raw / large data (fetch via scripts/download_data.py)
+data/*
+!data/README.md
+!data/.gitkeep
+
+# Generated figure outputs (keep the directory, drop the contents)
+figures/*/output/*
+!figures/*/output/.gitkeep
+
+# Local overrides
+.env
+.env.local
