@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import dataclasses
 from dataclasses import dataclass
 from importlib.metadata import version
@@ -60,15 +61,15 @@ class AlgorithmConfig:
     def validate_paper_profile(self) -> None:
         """Reject settings that differ from the accepted-paper correction profile."""
         if self.approximation != "Rytov":
-            raise ValueError("The live-cell paper pipeline requires the Rytov approximation")
+            raise ValueError("The paper reconstruction pipeline requires the Rytov approximation")
         if not self.use_skimage_unwrap:
-            raise ValueError("The live-cell paper pipeline requires scikit-image phase unwrapping")
+            raise ValueError("The paper reconstruction pipeline requires scikit-image phase unwrapping")
         if self.gradient_correction:
             raise ValueError("Gradient correction must be disabled for the accepted-paper reconstruction")
         if self.offset_regions is not None:
             raise ValueError("Offset correction must be disabled (offset_regions: null)")
         if self.ewald_embedding_mode != EwaldEmbeddingMode.TRUNCATE.value:
-            raise ValueError("The live-cell paper pipeline requires legacy 'truncate' Ewald embedding")
+            raise ValueError("The paper reconstruction pipeline requires legacy 'truncate' Ewald embedding")
         if self.edge_size_px < 0:
             raise ValueError("edge_size_px must be non-negative")
 
@@ -91,9 +92,11 @@ class MIPODTRunConfig:
 
     source_path: Path
     dataset_id: str
-    frame_interval_s: float
+    frame_interval_s: float | None
     image_dir: Path
     pairing_csv: Path
+    volume_manifest_csv: Path | None
+    default_volume_ids: tuple[int, ...] | None
     optical: OpticalConfig
     algorithm: AlgorithmConfig
     output_dir: Path
@@ -149,6 +152,22 @@ def _resolve_under(root: Path, value: str, *, key: str) -> Path:
     except ValueError as exc:
         raise ValueError(f"Configuration path '{key}' escapes its root: {value}") from exc
     return resolved
+
+
+def _load_volume_ids(path: Path) -> tuple[int, ...]:
+    """Load the explicitly analyzed volume IDs from a dataset manifest."""
+    with path.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        if reader.fieldnames is None or "volume_id" not in reader.fieldnames:
+            raise ValueError(f"Volume manifest must contain a 'volume_id' column: {path}")
+        volume_ids = tuple(int(row["volume_id"]) for row in reader)
+    if not volume_ids:
+        raise ValueError(f"Volume manifest is empty: {path}")
+    if any(volume_id < 0 for volume_id in volume_ids):
+        raise ValueError(f"Volume IDs must be non-negative: {path}")
+    if len(set(volume_ids)) != len(volume_ids):
+        raise ValueError(f"Volume manifest contains duplicate volume IDs: {path}")
+    return volume_ids
 
 
 def load_mipodt_config(
@@ -208,12 +227,22 @@ def load_mipodt_config(
         formats=tuple(str(value) for value in preview_raw.get("formats", ["png"])),
     )
 
+    volume_manifest_value = input_config.get("volume_manifest_csv")
+    volume_manifest_csv = (
+        None
+        if volume_manifest_value is None
+        else _resolve_under(REPO_ROOT, str(volume_manifest_value), key="input.volume_manifest_csv")
+    )
+    frame_interval_value = acquisition_raw.get("frame_interval_s")
+
     config = MIPODTRunConfig(
         source_path=path,
         dataset_id=str(raw["dataset_id"]),
-        frame_interval_s=float(acquisition_raw["frame_interval_s"]),
+        frame_interval_s=None if frame_interval_value is None else float(frame_interval_value),
         image_dir=_resolve_under(data_root, str(input_config["image_dir"]), key="input.image_dir"),
         pairing_csv=_resolve_under(REPO_ROOT, str(input_config["pairing_csv"]), key="input.pairing_csv"),
+        volume_manifest_csv=volume_manifest_csv,
+        default_volume_ids=None if volume_manifest_csv is None else _load_volume_ids(volume_manifest_csv),
         optical=optical,
         algorithm=algorithm,
         output_dir=_resolve_under(reconstruction_root, str(output_raw["directory"]), key="output.directory"),
@@ -222,7 +251,7 @@ def load_mipodt_config(
     )
     if config.output_path(0).suffix != ".npy":
         raise ValueError("output.filename_pattern must produce a .npy file")
-    if config.frame_interval_s <= 0:
+    if config.frame_interval_s is not None and config.frame_interval_s <= 0:
         raise ValueError("acquisition.frame_interval_s must be positive")
     return config
 
@@ -275,10 +304,14 @@ def effective_manifest(config: MIPODTRunConfig) -> dict[str, Any]:
     return {
         "schema_version": 1,
         "dataset_id": config.dataset_id,
-        "acquisition": {
-            "frame_interval_s": config.frame_interval_s,
-            "volume_rate_hz": 1.0 / config.frame_interval_s,
-        },
+        "acquisition": (
+            None
+            if config.frame_interval_s is None
+            else {
+                "frame_interval_s": config.frame_interval_s,
+                "volume_rate_hz": 1.0 / config.frame_interval_s,
+            }
+        ),
         "quantity": "delta_n_mip = n_off - n_on",
         "axis_order": "x, y, z",
         "dtype": "float32",
@@ -293,6 +326,7 @@ def effective_manifest(config: MIPODTRunConfig) -> dict[str, Any]:
         "input": {
             "image_dir": str(config.image_dir),
             "pairing_csv": str(config.pairing_csv),
+            "volume_manifest_csv": (None if config.volume_manifest_csv is None else str(config.volume_manifest_csv)),
             "legacy_pairing_semantics": "ImagePathA=MIR-ON, ImagePathB=MIR-OFF",
         },
         "optical": dataclasses.asdict(config.optical),

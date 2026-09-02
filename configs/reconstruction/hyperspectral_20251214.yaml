@@ -1,16 +1,18 @@
-# Accepted-paper MIP-ODT reconstruction for the 2025-12-24 COS-7 trajectory data.
+# Accepted-paper MIP-ODT reconstruction for the 2025-12-14 COS-7 hyperspectral data.
 schema_version: 1
-dataset_id: live_cell_20251224
+dataset_id: hyperspectral_20251214
 
 acquisition:
-  # Frame interval used by the trajectory analysis (approximately 19.2 volumes/s).
-  frame_interval_s: 0.052
+  # Per-volume calibration timestamps are recorded in the volume manifest.
+  frame_interval_s: null
 
 input:
   # image_dir is relative to MIPODT_DATA_DIR (defaults to ./data).
-  image_dir: live_cell_20251224/VLXT-17M.I_700009766081_251224-172142
-  # pairing_csv is repository-relative and is tracked with the analysis code.
-  pairing_csv: manifests/live_cell_20251224_pairings.csv
+  image_dir: hyperspectral_20251214/try2-cell1
+  # Both manifests are repository-relative and tracked with the analysis code.
+  pairing_csv: manifests/hyperspectral_20251214_pairings.csv
+  # Its volume_id column defines the paper analysis subset and the default reconstruction selection.
+  volume_manifest_csv: manifests/hyperspectral_20251214_volumes.csv
 
 optical:
   objective_na: 1.2
@@ -21,7 +23,7 @@ optical:
   medium_refractive_index: 1.33
   image_size_px: 1088
   # NumPy axis order used by muscopy.get_spectrum().
-  offaxis_center_px: [812, 253]
+  offaxis_center_px: [846, 226]
 
 reconstruction:
   approximation: Rytov
@@ -29,12 +31,11 @@ reconstruction:
   hermite_symmetry: true
   edge_size_px: 5
 
-  # These three values reproduce the source-edited analysis environment.
+  # These values reproduce the source-edited analysis environment.
   use_skimage_unwrap: true
   gradient_correction: false
   offset_regions: null
 
-  # v0.7 used integer truncation; v1.0.1 exposes it as an explicit mode.
   ewald_embedding_mode: truncate
   integer_precision_bits: 16
   float_precision_bits: 32
@@ -42,13 +43,12 @@ reconstruction:
 
 output:
   # Relative to MIPODT_RECONSTRUCTION_DIR (defaults to ./reconstructions).
-  directory: live_cell_20251224
+  directory: hyperspectral_20251214
   filename_pattern: mipodt_r_{volume_id:03d}.npy
 
 preview:
-  # Volume and planes used by the original live-cell quick-look configuration.
-  volume_id: 9
-  z_indices: [125, 131]
+  volume_id: 20
+  z_indices: [132]
   colormap: inferno
   vmin: -0.0005
   vmax: 0.004

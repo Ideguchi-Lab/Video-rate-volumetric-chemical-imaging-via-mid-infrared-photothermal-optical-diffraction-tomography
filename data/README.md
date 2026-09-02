@@ -10,18 +10,21 @@ data/
 ├── fig2/
 ├── fig3/
 ├── figS1/
-└── live_cell_20251224/
-    └── VLXT-17M.I_700009766081_251224-172142/
+├── anomalous_diffusion_20251224/
+│   └── VLXT-17M.I_700009766081_251224-172142/
+│       ├── image0000001.tif
+│       └── ...
+└── hyperspectral_20251214/
+    └── try2-cell1/
         ├── image0000001.tif
-        ├── image0000002.tif
         └── ...
 ```
 
 Each `figures/<fig>/README.md` lists the exact files it needs.
 
-The live-cell pairing CSV is the frozen output of pre-analysis and is tracked at
-`manifests/live_cell_20251224_pairings.csv`. In that legacy CSV, `ImagePathA`
-means MIR-ON and `ImagePathB` means MIR-OFF.
+The pairing CSVs and hyperspectral volume-to-wavenumber mapping are frozen
+outputs of pre-analysis and are tracked under `manifests/`. In the legacy
+pairing format, `ImagePathA` means MIR-ON and `ImagePathB` means MIR-OFF.
 
 To keep raw and reconstructed arrays outside this checkout:
 

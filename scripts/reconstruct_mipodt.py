@@ -5,12 +5,12 @@ Examples
 --------
 Validate all inputs without allocating reconstruction arrays::
 
-    uv run scripts/reconstruct_mipodt.py configs/reconstruction/live_cell_20251224.yaml --validate-only
+    uv run scripts/reconstruct_mipodt.py configs/reconstruction/anomalous_diffusion_20251224.yaml --validate-only
 
 Reconstruct one volume, or the complete sequence::
 
-    uv run scripts/reconstruct_mipodt.py configs/reconstruction/live_cell_20251224.yaml --volume 0
-    uv run scripts/reconstruct_mipodt.py configs/reconstruction/live_cell_20251224.yaml
+    uv run scripts/reconstruct_mipodt.py configs/reconstruction/anomalous_diffusion_20251224.yaml --volume 0
+    uv run scripts/reconstruct_mipodt.py configs/reconstruction/anomalous_diffusion_20251224.yaml
 """
 
 from __future__ import annotations
@@ -52,12 +52,16 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def select_volume_ids(available: list[int], args: argparse.Namespace) -> list[int]:
+def select_volume_ids(
+    available: list[int], args: argparse.Namespace, defaults: tuple[int, ...] | None = None
+) -> list[int]:
     """Resolve explicit IDs or a half-open range against available volumes."""
     if args.volume and (args.start_volume is not None or args.stop_volume is not None):
         raise ValueError("Use either --volume or --start-volume/--stop-volume, not both")
     if args.volume:
         selected = sorted(set(args.volume))
+    elif args.start_volume is None and args.stop_volume is None and defaults is not None:
+        selected = list(defaults)
     else:
         start = 0 if args.start_volume is None else args.start_volume
         stop = len(available) if args.stop_volume is None else args.stop_volume
@@ -115,7 +119,7 @@ def main() -> None:
     validate_muscopy_version()
     pairs = load_pairing_csv(config.pairing_csv, config.image_dir, require_images=True)
     grouped_pairs = group_pairs_by_volume(pairs)
-    selected_ids = select_volume_ids(list(grouped_pairs), args)
+    selected_ids = select_volume_ids(list(grouped_pairs), args, config.default_volume_ids)
 
     pair_counts = [len(grouped_pairs[volume_id]) for volume_id in grouped_pairs]
     print(f"Dataset: {config.dataset_id}")
