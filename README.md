@@ -21,7 +21,8 @@ entry point per directory, shared helpers in a small package.
 ├── scripts/
 │   ├── download_data.py     # fetch dataset (URLs + sha256)
 │   ├── new_figure.py        # scaffold a new figure directory
-│   └── run_all.py           # reproduce everything
+│   ├── reconstruct_mipodt.py # reconstruct sequential MIP-ODT volumes
+│   └── preview_mipodt.py    # render quick-look XY planes
 └── data/                    # raw data (git-ignored), see data/README.md
 ```
 
@@ -39,12 +40,56 @@ Raw data can live elsewhere: `export MIPODT_DATA_DIR=/path/to/data`.
 ```bash
 uv run figures/fig1_system/run.py          # one figure
 uv run figures/fig1_system/run.py --plot-only   # re-plot from cached arrays
-uv run scripts/run_all.py                  # all figures
 ```
 
 Each `run.py` splits the work into `compute()` (slow, cached to
 `output/cache.npz`) and `plot()` (fast), so styling changes never trigger a
 re-reconstruction.
+
+## Reconstruct the 2025-12-24 live-cell MIP-ODT sequence
+
+The sequential live-cell reconstruction starts from the completed pre-analysis:
+the frozen `cos7_pairings.csv` identifies same-angle MIR-ON/OFF holograms and
+removes failed illumination updates. The pre-analysis itself is intentionally
+outside the public reconstruction pipeline.
+
+Arrange the downloaded data as described in `data/README.md`, then validate all
+72 volumes without starting a GPU reconstruction:
+
+```bash
+uv run scripts/reconstruct_mipodt.py \
+  configs/reconstruction/live_cell_20251224.yaml \
+  --validate-only
+```
+
+Reconstruct one volume first. Output is a real `float32` array in `(x, y, z)`
+axis order and has the physical definition `delta_n_MIP = n_OFF - n_ON`.
+
+```bash
+uv run scripts/reconstruct_mipodt.py \
+  configs/reconstruction/live_cell_20251224.yaml \
+  --volume 0
+```
+
+Omitting `--volume` processes the complete sequence. Existing volumes are
+retained, so the same command resumes an interrupted run. Pass `--overwrite`
+only when an intentional recomputation is required.
+
+```bash
+uv run scripts/reconstruct_mipodt.py configs/reconstruction/live_cell_20251224.yaml
+```
+
+Generate the default quick-look view (volume 9, z indices 125 and 131) after
+that volume has been reconstructed:
+
+```bash
+uv run scripts/preview_mipodt.py configs/reconstruction/live_cell_20251224.yaml
+```
+
+Large outputs default to `reconstructions/live_cell_20251224/`. Set
+`MIPODT_RECONSTRUCTION_DIR` to place them on another disk. Every run writes a
+`run_manifest.yaml` containing the effective optical parameters, sampling,
+software versions, pair counts, and correction settings.
 
 ## Adding a figure
 

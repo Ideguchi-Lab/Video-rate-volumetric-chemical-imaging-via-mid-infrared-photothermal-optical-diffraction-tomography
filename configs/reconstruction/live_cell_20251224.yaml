@@ -1,0 +1,55 @@
+# Accepted-paper MIP-ODT reconstruction for the 2025-12-24 COS-7 trajectory data.
+schema_version: 1
+dataset_id: live_cell_20251224
+
+acquisition:
+  # Frame interval used by the trajectory analysis (approximately 19.2 volumes/s).
+  frame_interval_s: 0.052
+
+input:
+  # image_dir is relative to MIPODT_DATA_DIR (defaults to ./data).
+  image_dir: live_cell_20251224/VLXT-17M.I_700009766081_251224-172142
+  # pairing_csv is repository-relative and is tracked with the analysis code.
+  pairing_csv: manifests/live_cell_20251224_pairings.csv
+
+optical:
+  objective_na: 1.2
+  illumination_na: 0.85
+  wavelength_nm: 532.0
+  camera_pixel_size_um: 9.0
+  magnification: 166.66666666666666
+  medium_refractive_index: 1.33
+  image_size_px: 1088
+  # NumPy axis order used by muscopy.get_spectrum().
+  offaxis_center_px: [812, 253]
+
+reconstruction:
+  approximation: Rytov
+  linear_approximation: true
+  hermite_symmetry: true
+  edge_size_px: 5
+
+  # These three values reproduce the source-edited analysis environment.
+  use_skimage_unwrap: true
+  gradient_correction: false
+  offset_regions: null
+
+  # v0.7 used integer truncation; v1.0.1 exposes it as an explicit mode.
+  ewald_embedding_mode: truncate
+  integer_precision_bits: 16
+  float_precision_bits: 32
+  verbose: true
+
+output:
+  # Relative to MIPODT_RECONSTRUCTION_DIR (defaults to ./reconstructions).
+  directory: live_cell_20251224
+  filename_pattern: mipodt_r_{volume_id:03d}.npy
+
+preview:
+  # Volume and planes used by the original live-cell quick-look configuration.
+  volume_id: 9
+  z_indices: [125, 131]
+  colormap: inferno
+  vmin: -0.0005
+  vmax: 0.004
+  formats: [png, pdf]

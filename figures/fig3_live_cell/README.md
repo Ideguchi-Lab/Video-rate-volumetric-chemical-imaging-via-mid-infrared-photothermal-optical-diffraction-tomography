@@ -4,20 +4,23 @@
 
 ## Required data
 
-| File (relative to `$MIPODT_DATA_DIR`) | Description | Size |
+| File | Description | Size |
 |---|---|---|
-| `figX/raw_holograms.tif` | ... | ... |
+| `manifests/live_cell_20251224_pairings.csv` (tracked in this repository) | Frozen MIR-ON/OFF pairing | small |
+| `live_cell_20251224/VLXT-17M.I_700009766081_251224-172142/image*.tif` | Sequential holograms | large |
 
-## Reproduce
+## Reconstruct MIP-ODT volumes
 
 ```bash
-uv run figures/fig3_live_cell/run.py            # full pipeline
-uv run figures/fig3_live_cell/run.py --plot-only  # re-plot from cached output/*.npz
+uv run scripts/reconstruct_mipodt.py configs/reconstruction/live_cell_20251224.yaml --validate-only
+uv run scripts/reconstruct_mipodt.py configs/reconstruction/live_cell_20251224.yaml --volume 0
+uv run scripts/reconstruct_mipodt.py configs/reconstruction/live_cell_20251224.yaml
+uv run scripts/preview_mipodt.py configs/reconstruction/live_cell_20251224.yaml
 ```
 
-Outputs are written to `output/` (`figX.pdf`, `figX.png`, intermediate `*.npz`).
+The reconstruction output is `delta_n_MIP = n_OFF - n_ON`. Scikit-image phase
+unwrapping is enabled; gradient and phase-offset corrections are disabled.
 
-## Notes
-
-- Parameters live in `config.yaml`; nothing is hard-coded in `run.py`.
-- Expected runtime: ~N min on a laptop CPU.
+The resulting `mipodt_r_*.npy` sequence is the input to the trajectory-analysis
+and figure-panel pipeline. That downstream analysis is kept separate so plots
+can be regenerated without repeating the GPU reconstruction.

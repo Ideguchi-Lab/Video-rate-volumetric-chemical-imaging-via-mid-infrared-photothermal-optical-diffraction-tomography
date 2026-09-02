@@ -11,6 +11,9 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = Path(os.environ.get("MIPODT_DATA_DIR", REPO_ROOT / "data")).expanduser().resolve()
+RECONSTRUCTION_DIR = (
+    Path(os.environ.get("MIPODT_RECONSTRUCTION_DIR", REPO_ROOT / "reconstructions")).expanduser().resolve()
+)
 FIGURES_DIR = REPO_ROOT / "figures"
 
 

@@ -15,6 +15,10 @@ data/*
 figures/*/output/*
 !figures/*/output/.gitkeep
 
+# Reconstructed volumes (large, generated from raw holograms)
+reconstructions/*
+!reconstructions/.gitkeep
+
 # Local overrides
 .env
 .env.local
