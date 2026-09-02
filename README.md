@@ -55,8 +55,9 @@ uv run scripts/new_figure.py fig4_spectra --title "Hyperspectral imaging"
 ## Development
 
 ```bash
-uv sync --extra dev
-uv run ruff check .
+uv sync                        # dev group (ruff, pre-commit) is included by default
+uv run pre-commit install      # once; hooks run on every commit
+uv run pre-commit run --all-files
 ```
 
 ## Citation

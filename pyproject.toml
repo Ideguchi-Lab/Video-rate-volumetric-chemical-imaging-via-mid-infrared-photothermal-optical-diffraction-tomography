@@ -13,11 +13,6 @@ dependencies = [
     "tqdm>=4.66",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "ruff>=0.6",
-]
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -32,3 +27,8 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
 
+[dependency-groups]
+dev = [
+    "pre-commit>=4.6.2",
+    "ruff>=0.16",
+]

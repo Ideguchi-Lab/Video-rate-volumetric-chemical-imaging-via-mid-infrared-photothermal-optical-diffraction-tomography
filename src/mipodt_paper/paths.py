@@ -18,9 +18,7 @@ def data_path(*parts: str) -> Path:
     """Return a path under ``DATA_DIR`` and raise a clear error if it is missing."""
     path = DATA_DIR.joinpath(*parts)
     if not path.exists():
-        raise FileNotFoundError(
-            f"{path} not found. Download the dataset (see data/README.md) or set MIPODT_DATA_DIR."
-        )
+        raise FileNotFoundError(f"{path} not found. Download the dataset (see data/README.md) or set MIPODT_DATA_DIR.")
     return path
 
 
