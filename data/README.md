@@ -16,16 +16,18 @@ data/
 │       ├── odt_cell.npy
 │       ├── sample/       # 11 TIFF holograms
 │       └── reference/    # 11 TIFF holograms
-├── fig3/
+├── fig3_multispectral/
+│   ├── hyperspectral_raw/       # raw hyperspectral TIFF holograms
+│   ├── mipodt/                  # mipodt_r_000.npy ... mipodt_r_041.npy
+│   ├── static_odt/
+│   │   ├── odt_cell.npy
+│   │   └── raw/{sample,reference}/  # added with the static raw release
+│   └── references/              # reference_spectra.csv + metadata YAML
 ├── figS1/
 ├── anomalous_diffusion_20251224/
 │   └── VLXT-17M.I_700009766081_251224-172142/
 │       ├── image0000001.tif
 │       └── ...
-└── hyperspectral_20251214/
-    └── try2-cell1/
-        ├── image0000001.tif
-        └── ...
 ```
 
 Each `figures/<fig>/README.md` lists the exact files it needs.
@@ -41,6 +43,11 @@ the corresponding CSV files under `manifests/`.
 The pairing CSVs and hyperspectral volume-to-wavenumber mapping are frozen
 outputs of pre-analysis and are tracked under `manifests/`. In the legacy
 pairing format, `ImagePathA` means MIR-ON and `ImagePathB` means MIR-OFF.
+
+The Figure 3 archive includes only the 42 hyperspectral volumes with calibrated
+wavenumber and power records (IDs 0–41). See
+`figures/fig3_multispectral/README.md` for the exact reference-spectrum schema,
+static-ODT contract, and generated outputs.
 
 To keep raw and reconstructed arrays outside this checkout:
 

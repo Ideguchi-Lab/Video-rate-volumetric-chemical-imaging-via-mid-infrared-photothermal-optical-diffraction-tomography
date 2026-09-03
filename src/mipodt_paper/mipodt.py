@@ -300,6 +300,55 @@ def reconstruct_mipodt_volume(config: MIPODTRunConfig, pairs: list[MIPPair]) -> 
     return result
 
 
+def reconstruct_static_odt_volume(
+    optical: OpticalConfig,
+    algorithm: AlgorithmConfig,
+    sample_paths: list[Path],
+    reference_paths: list[Path],
+) -> np.ndarray:
+    """Reconstruct ``delta_n = n_sample - n_medium`` from paired TIFF holograms."""
+    if not sample_paths or len(sample_paths) != len(reference_paths):
+        raise ValueError("Static ODT requires equal non-zero numbers of sample and reference holograms")
+    params = ODTParameters(
+        na=optical.objective_na,
+        wavelength_m=optical.wavelength_nm * 1e-9,
+        img_size_px=optical.image_size_px,
+        px_size_m=optical.effective_pixel_size_m,
+        n_sol=optical.medium_refractive_index,
+        na_illumination=optical.illumination_na,
+    )
+    algorithm.validate_paper_profile()
+    odt_config = ODTConfig(
+        approx_type=algorithm.approximation,
+        linear_approx=algorithm.linear_approximation,
+        hermite_symmetry=algorithm.hermite_symmetry,
+        precision=ArrayPrecision(
+            int_length=algorithm.integer_precision_bits,
+            float_length=algorithm.float_precision_bits,
+        ),
+        edge_size=algorithm.edge_size_px,
+        offset_regions=algorithm.offset_regions,
+        gradient_correction=algorithm.gradient_correction,
+        use_skimage_unwrap=algorithm.use_skimage_unwrap,
+        ewald_embedding_mode=EwaldEmbeddingMode(algorithm.ewald_embedding_mode),
+        verbose=algorithm.verbose,
+    )
+
+    def extract(path: Path) -> jax.Array:
+        hologram = load_hologram(path, optical.image_size_px)
+        fourier_hologram = jnp.fft.fftshift(jnp.fft.fft2(hologram))
+        return get_spectrum(fourier_hologram, params, optical.offaxis_center_px)
+
+    sample_spectra = [extract(path) for path in sample_paths]
+    reference_spectra = [extract(path) for path in reference_paths]
+    refractive_index, _ = odt(sample_spectra, reference_spectra, params, odt_config)
+    result = np.asarray(jax.device_get(jnp.real(refractive_index) - params.n_sol), dtype=np.float32)
+    expected_shape = (2 * params.aperturesize_px + 1, 2 * params.aperturesize_px + 1, params.freq_axial_extent_px)
+    if result.shape != expected_shape:
+        raise RuntimeError(f"Unexpected reconstruction shape: expected {expected_shape}, got {result.shape}")
+    return result
+
+
 def _portable_path(path: Path, root: Path) -> str:
     """Prefer a path relative to its configured root in run manifests."""
     try:

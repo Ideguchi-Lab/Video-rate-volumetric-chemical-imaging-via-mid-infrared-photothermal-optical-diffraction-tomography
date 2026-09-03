@@ -1,0 +1,80 @@
+schema_version: 1
+figure_id: fig3_multispectral
+
+data:
+  # All paths are relative to MIPODT_DATA_DIR unless explicitly marked repository-relative.
+  mipodt_directory: fig3_multispectral/mipodt
+  mipodt_filename_regex: 'mipodt_r_(?P<volume_id>\d{3})\.npy'
+  static_odt_path: fig3_multispectral/static_odt/odt_cell.npy
+  reference_spectra_path: fig3_multispectral/references/reference_spectra.csv
+  reference_metadata_path: fig3_multispectral/references/reference_metadata.yaml
+  volume_metadata_repository_path: manifests/hyperspectral_20251214_volumes.csv
+  expected_volume_ids: {start: 0, stop: 42}
+  expected_shape: [535, 535, 267]
+  expected_dtype: float32
+
+array_convention:
+  order: [axis0, axis1, z]
+  display_horizontal_axis: axis1
+  display_vertical_axis: axis0
+  roi_intervals: half-open
+
+sampling:
+  xy_um_per_pixel: 0.110
+  z_um_per_pixel: 0.220
+  medium_refractive_index: 1.33
+
+rois:
+  lipid_droplet: {axis0: [325, 328], axis1: [145, 148], z: [135, 137]}
+  er_mixed: {axis0: [261, 276], axis1: [230, 237], z: [132, 136]}
+  nucleolus: {axis0: [300, 321], axis1: [310, 331], z: [136, 141]}
+
+odt_slices:
+  z_indices: [135, 140]
+  crop: {axis0: [150, 450], axis1: [100, 400]}
+  cmap: Greys_r
+  display_range: [1.33, 1.38]
+  scalebar_um: 10.0
+  arrows:
+    - {name: lipid_droplet, z_index: 135, target: [326, 146], label: [350, 125], color: cyan}
+    - {name: er_mixed, z_index: 135, target: [268, 233], label: [240, 205], color: cyan}
+    - {name: nucleolus, z_index: 140, target: [310, 320], label: [340, 350], color: cyan}
+
+mipodt_slices:
+  volume_ids: [25, 23, 14]
+  z_indices: [135, 140]
+  crop: {axis0: [150, 450], axis1: [100, 400]}
+  cmap: inferno
+  # Rows are independently scaled after division by the volume's laser power.
+  row_display_ranges:
+    "25": [-0.00010, 0.00070]
+    "23": [-0.00010, 0.00070]
+    "14": [-0.00010, 0.00070]
+  scalebar_um: 10.0
+
+spectra:
+  volume_ids: {start: 14, stop: 36}
+  wavenumber_correction_cm_inv: -12.5
+
+nnls:
+  analysis_range_cm_inv: [2800.0, 3100.0]
+  asls: {lambda: 1.0e5, p: 0.01, iterations: 20}
+  area_and_fit_range_cm_inv: [2830.0, 3027.0]
+  common_resolution_fwhm_cm_inv: 16.0
+  common_grid_step_cm_inv: 0.5
+  regions:
+    nucleolus: [bsa, guanosine, oleic_acid]
+    lipid_droplet: [oleic_acid, cholesterol]
+
+plot:
+  dpi: 300
+  font_size: 10
+  spectrum_colors:
+    lipid_droplet: "#d62728"
+    er_mixed: "#2ca02c"
+    nucleolus: "#1f77b4"
+
+output:
+  cache: analysis_cache.npz
+  formats: [png, eps]
+  bmp_image_panels: [odt_roi_slices, mipodt_slices]

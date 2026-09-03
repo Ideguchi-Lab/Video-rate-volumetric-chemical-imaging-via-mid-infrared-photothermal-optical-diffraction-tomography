@@ -15,7 +15,7 @@ entry point per directory, shared helpers in a small package.
 │   │   ├── run.py           # compute() -> cache.npz -> plot() -> output/fig1.{pdf,png}
 │   │   └── output/          # generated, git-ignored
 │   ├── fig2_resolution/
-│   ├── fig3_live_cell/
+│   ├── fig3_multispectral/
 │   └── figS1_noise/
 ├── src/mipodt_paper/        # shared code: paths, config loader, plotting style
 ├── scripts/
@@ -45,6 +45,11 @@ uv run figures/fig1_system/run.py --plot-only   # re-plot from cached arrays
 Each figure README records its output contract. Figure 2 preserves the
 individual files produced by the original z-slice and resolution-evaluation
 tools; other figure scripts may expose `--plot-only` for cached re-plotting.
+
+Throughout this repository, 3D reconstruction from raw measurements is kept
+separate from downstream analysis of the reconstructed arrays. Figure 3
+follows this repository-wide convention and writes individual source figures
+rather than a new composite; see `figures/fig3_multispectral/README.md`.
 
 ## Reconstruct the sequential MIP-ODT datasets
 

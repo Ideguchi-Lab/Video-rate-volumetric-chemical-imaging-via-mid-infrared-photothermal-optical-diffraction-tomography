@@ -1,0 +1,33 @@
+# Static ODT reconstruction paired with the Fig. 3 multispectral analysis.
+schema_version: 1
+dataset_id: fig3_static_odt
+
+input:
+  image_dir: fig3_multispectral/static_odt/raw
+  pairing_csv: manifests/fig3_static_odt_pairs.csv
+
+optical:
+  objective_na: 1.2
+  illumination_na: 0.85
+  wavelength_nm: 532.0
+  camera_pixel_size_um: 9.0
+  magnification: 166.66666666666666
+  medium_refractive_index: 1.33
+  image_size_px: 1088
+  offaxis_center_px: [846, 226]
+
+reconstruction:
+  approximation: Rytov
+  linear_approximation: true
+  hermite_symmetry: true
+  edge_size_px: 5
+  use_skimage_unwrap: true
+  gradient_correction: false
+  offset_regions: null
+  ewald_embedding_mode: truncate
+  integer_precision_bits: 16
+  float_precision_bits: 32
+  verbose: true
+
+output:
+  path: fig3_multispectral/static_odt/odt_cell.npy
