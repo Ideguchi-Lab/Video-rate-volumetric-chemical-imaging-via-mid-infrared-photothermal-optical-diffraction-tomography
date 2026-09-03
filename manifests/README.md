@@ -6,6 +6,8 @@ state identification or failed-SLM-update detection.
 
 The dataset names describe their role in the paper:
 
+- `fig2_resolution`: static-ODT and sequential MIP-ODT source holograms and
+  their distributed reconstructed arrays used for the resolution validation.
 - `anomalous_diffusion_20251224`: video-rate sequence used for trajectory and
   anomalous-diffusion analysis.
 - `hyperspectral_20251214`: wavelength-swept sequence used for hyperspectral
@@ -21,6 +23,12 @@ to its calibrated wavenumber, MIR power, and calibration timestamp. Only the
 volumes listed in this table are selected by default. The remaining pairing
 groups are not assigned calibrated wavenumbers and are therefore not part of
 the hyperspectral paper analysis.
+
+`fig2_resolution_static_pairs.csv` freezes the sample/reference ordering for
+the 11-angle static ODT acquisition.
+
+`fig2_resolution_20251202_pairings.csv` freezes the 11 same-angle MIR-ON/OFF
+pairs used to regenerate the distributed `mipodt_r_000.npy`.
 
 Both pairing CSVs use these legacy columns and fixed semantics:
 

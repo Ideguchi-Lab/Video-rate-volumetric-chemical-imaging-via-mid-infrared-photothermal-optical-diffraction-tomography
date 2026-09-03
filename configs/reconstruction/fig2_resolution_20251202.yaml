@@ -1,0 +1,50 @@
+# Sequential MIP-ODT reconstruction used by the Fig. 2 resolution validation.
+schema_version: 1
+dataset_id: fig2_resolution_20251202
+
+acquisition:
+  frame_interval_s: null
+
+input:
+  image_dir: fig2_resolution/sequential_mipodt/holograms
+  pairing_csv: manifests/fig2_resolution_20251202_pairings.csv
+
+optical:
+  objective_na: 1.2
+  illumination_na: 1.0
+  wavelength_nm: 532.0
+  camera_pixel_size_um: 9.0
+  magnification: 166.66666666666666
+  medium_refractive_index: 1.33
+  image_size_px: 1088
+  offaxis_center_px: [840, 228]
+
+reconstruction:
+  approximation: Rytov
+  linear_approximation: true
+  hermite_symmetry: true
+  edge_size_px: 5
+  # The array archived by the original Fig. 2 analysis used Poisson unwrap.
+  use_skimage_unwrap: false
+  gradient_correction: false
+  offset_regions: null
+  ewald_embedding_mode: truncate
+  integer_precision_bits: 16
+  float_precision_bits: 32
+  verbose: true
+
+output:
+  # With MIPODT_RECONSTRUCTION_DIR=data, this writes the NPY at the exact
+  # location included in the Zenodo package and consumed by the figure step.
+  directory: fig2_resolution/mipodt
+  filename_pattern: mipodt_r_{volume_id:03d}.npy
+  # Preserve the sign convention of the original Fig. 2 analysis array.
+  ri_change_sign: 1.0
+
+preview:
+  volume_id: 0
+  z_indices: [140, 134, 129, 124]
+  colormap: inferno
+  vmin: -0.0005
+  vmax: 0.003
+  formats: [png, pdf]

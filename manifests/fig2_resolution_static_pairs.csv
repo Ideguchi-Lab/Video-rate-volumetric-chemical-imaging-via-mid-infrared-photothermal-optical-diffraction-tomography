@@ -1,0 +1,12 @@
+angle_index,sample_path,reference_path
+0,static_odt/sample/image0000021.tif,static_odt/reference/image0000809.tif
+1,static_odt/sample/image0000022.tif,static_odt/reference/zimage0000799.tif
+2,static_odt/sample/image0000023.tif,static_odt/reference/zimage0000800.tif
+3,static_odt/sample/image0000024.tif,static_odt/reference/zimage0000801.tif
+4,static_odt/sample/image0000025.tif,static_odt/reference/zimage0000802.tif
+5,static_odt/sample/image0000026.tif,static_odt/reference/zimage0000803.tif
+6,static_odt/sample/image0000027.tif,static_odt/reference/zimage0000804.tif
+7,static_odt/sample/image0000028.tif,static_odt/reference/zimage0000805.tif
+8,static_odt/sample/image0000029.tif,static_odt/reference/zimage0000806.tif
+9,static_odt/sample/image0000030.tif,static_odt/reference/zimage0000807.tif
+10,static_odt/sample/image0000031.tif,static_odt/reference/zimage0000808.tif

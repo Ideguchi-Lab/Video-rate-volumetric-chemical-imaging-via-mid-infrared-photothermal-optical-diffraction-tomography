@@ -1,11 +1,107 @@
-# Parameters for Fig. X. Keep units in the key name or a comment.
-figure_id: fig2
 data:
-  raw: fig2/raw_holograms.tif
-reconstruction:
-  wavelength_um: 0.532
-  na: 1.2
-  pixel_size_um: 0.1
-plot:
-  vmin: 1.33
-  vmax: 1.40
+  static_odt:
+    path: fig2_resolution/static_odt/odt_cell.npy
+    value_offset: 1.33
+  mipodt:
+    path: fig2_resolution/mipodt/mipodt_r_000.npy
+    value_offset: 0.0
+  expected_shape: [535, 535, 267]
+  axis_order: xyz
+
+resolution:
+  center_px: [284, 202, 124]
+  half_range_px: [5, 5, 7]
+  pixel_size_xy_m: 1.1e-7
+  pixel_size_z_m: 2.2e-7
+  display_half_range_px: [20, 20, 10]
+  font:
+    family: Arial
+    size_title: 22
+    size_label: 20
+    size_colorbar_label: 24
+    size_colorbar_tick: 20
+  profile:
+    figsize: [15, 6]
+    font_size_title: 24
+    font_size_subtitle: 22
+    font_size_label: 20
+    font_size_tick: 18
+    font_size_legend: 18
+    colors: ["#1f77b4", "#ff7f0e", "#2ca02c"]
+    fit_color: red
+    marker_size: 30
+    linewidth: 2
+    show_grid: false
+    show_legend: false
+    xlabel: "Position [nm]"
+  static_odt:
+    prefix: odt_
+    cmap: Greys_r
+    crosshair_color: red
+    crosshair_linewidth: 3
+    vmin: null
+    vmax: null
+    title: ODT cross-sectional profiles
+    ylabel: RI
+    title_xy: XY Plane
+    title_xz: XZ Plane
+    colorbar_label: RI
+    colorbar_scientific: true
+  mipodt:
+    prefix: mipodt_
+    cmap: inferno
+    crosshair_color: cyan
+    crosshair_linewidth: 3
+    vmin: null
+    vmax: null
+    title: MIP-ODT cross-sectional profiles
+    ylabel: RI change
+    title_xy: XY Plane
+    title_xz: XZ Plane
+    colorbar_label: RI change
+    colorbar_scientific: true
+
+z_slices:
+  z_indices: [140, 134, 129, 124]
+  pixel_size_xy_nm: 110
+  pixel_size_z_nm: 220
+  figsize_width: 6.0
+  figsize_height: 5.0
+  dpi: 300
+  scalebar_um: 10.0
+  scalebar_color: white
+  scalebar_linewidth: 3.0
+  font:
+    family: Arial
+    size_title: 26
+    size_colorbar_label: 24
+    size_colorbar_tick: 20
+    size_scalebar: 22
+  static_odt:
+    output_prefix: odt_z_slices
+    title: ODT Slices
+    colorbar_label: RI
+    colorbar_scientific: true
+    crop_xy: [0, 500, 0, 500]
+    cmap: Greys_r
+    # The legacy values were specified before adding the 1.33 RI offset.
+    vmin_raw: -0.002
+    vmax_raw: 0.012
+    roi_annotations:
+      - {x: 190, y: 160, width: 180, height: 180, color: red, linewidth: 2, z_index: null}
+    arrow_annotations:
+      - {x_start: 324, y_start: 242, x_end: 286, y_end: 204, color: white, linewidth: 4,
+         head_width: 0.5, head_length: 0.4, z_index: 124}
+  mipodt:
+    output_prefix: mipodt_z_slices
+    title: MIP-ODT Slices
+    colorbar_label: RI change
+    colorbar_scientific: true
+    crop_xy: [190, 370, 160, 340]
+    cmap: inferno
+    vmin_raw: -0.0005
+    vmax_raw: 0.003
+    roi_annotations: []
+    arrow_annotations:
+      - {x_start: 304, y_start: 222, x_end: 286, y_end: 204, color: white, linewidth: 4,
+         head_width: 0.5, head_length: 0.4, z_index: 124}

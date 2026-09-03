@@ -42,9 +42,9 @@ uv run figures/fig1_system/run.py          # one figure
 uv run figures/fig1_system/run.py --plot-only   # re-plot from cached arrays
 ```
 
-Each `run.py` splits the work into `compute()` (slow, cached to
-`output/cache.npz`) and `plot()` (fast), so styling changes never trigger a
-re-reconstruction.
+Each figure README records its output contract. Figure 2 preserves the
+individual files produced by the original z-slice and resolution-evaluation
+tools; other figure scripts may expose `--plot-only` for cached re-plotting.
 
 ## Reconstruct the sequential MIP-ODT datasets
 
@@ -55,6 +55,7 @@ public reconstruction pipeline.
 
 Dataset names reflect their downstream role:
 
+- `fig2_resolution_20251202`: one volume used for the Fig. 2 resolution validation
 - `anomalous_diffusion_20251224`: video-rate trajectory and anomalous-diffusion analysis
 - `hyperspectral_20251214`: wavelength-swept hyperspectral analysis
 

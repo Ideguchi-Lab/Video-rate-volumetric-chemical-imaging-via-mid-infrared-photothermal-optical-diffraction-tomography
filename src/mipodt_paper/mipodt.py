@@ -51,7 +51,7 @@ class AlgorithmConfig:
     hermite_symmetry: bool
     edge_size_px: int
     gradient_correction: bool
-    offset_regions: None
+    offset_regions: Any
     use_skimage_unwrap: bool
     ewald_embedding_mode: str
     integer_precision_bits: int
@@ -59,13 +59,11 @@ class AlgorithmConfig:
     verbose: bool
 
     def validate_paper_profile(self) -> None:
-        """Reject settings that differ from the accepted-paper correction profile."""
+        """Validate explicitly recorded reconstruction settings."""
         if self.approximation != "Rytov":
             raise ValueError("The paper reconstruction pipeline requires the Rytov approximation")
-        if not self.use_skimage_unwrap:
-            raise ValueError("The paper reconstruction pipeline requires scikit-image phase unwrapping")
         if self.gradient_correction:
-            raise ValueError("Gradient correction must be disabled for the accepted-paper reconstruction")
+            raise ValueError("Gradient correction must be disabled for the paper reconstruction")
         if self.offset_regions is not None:
             raise ValueError("Offset correction must be disabled (offset_regions: null)")
         if self.ewald_embedding_mode != EwaldEmbeddingMode.TRUNCATE.value:
@@ -101,6 +99,7 @@ class MIPODTRunConfig:
     algorithm: AlgorithmConfig
     output_dir: Path
     filename_pattern: str
+    ri_change_sign: float
     preview: PreviewConfig
 
     def output_path(self, volume_id: int) -> Path:
@@ -127,9 +126,9 @@ class MIPODTRunConfig:
                 float_length=self.algorithm.float_precision_bits,
             ),
             edge_size=self.algorithm.edge_size_px,
-            offset_regions=None,
-            gradient_correction=False,
-            use_skimage_unwrap=True,
+            offset_regions=self.algorithm.offset_regions,
+            gradient_correction=self.algorithm.gradient_correction,
+            use_skimage_unwrap=self.algorithm.use_skimage_unwrap,
             ewald_embedding_mode=EwaldEmbeddingMode(self.algorithm.ewald_embedding_mode),
             verbose=self.algorithm.verbose,
         )
@@ -247,10 +246,13 @@ def load_mipodt_config(
         algorithm=algorithm,
         output_dir=_resolve_under(reconstruction_root, str(output_raw["directory"]), key="output.directory"),
         filename_pattern=str(output_raw["filename_pattern"]),
+        ri_change_sign=float(output_raw.get("ri_change_sign", -1.0)),
         preview=preview,
     )
     if config.output_path(0).suffix != ".npy":
         raise ValueError("output.filename_pattern must produce a .npy file")
+    if config.ri_change_sign not in (-1.0, 1.0):
+        raise ValueError("output.ri_change_sign must be -1 or 1")
     if config.frame_interval_s is not None and config.frame_interval_s <= 0:
         raise ValueError("acquisition.frame_interval_s must be positive")
     return config
@@ -279,23 +281,31 @@ def _extract_spectrum(path: Path, config: MIPODTRunConfig, params: ODTParameters
 
 
 def reconstruct_mipodt_volume(config: MIPODTRunConfig, pairs: list[MIPPair]) -> np.ndarray:
-    """Reconstruct one volume as real float32 ``n_OFF - n_ON``.
+    """Reconstruct one real float32 RI-change volume.
 
     ``muscopy.odt`` reconstructs the MIR-ON field relative to the MIR-OFF
-    reference. In the linear approximation used here, negating its RI change
-    gives the paper's public MIP convention, ``n_OFF - n_ON``.
+    reference. ``output.ri_change_sign`` records which sign of
+    ``n_reconstructed - n_medium`` is saved for each acquisition.
     """
     params = config.make_odt_parameters()
     odt_config = config.make_odt_config()
     on_spectra = [_extract_spectrum(pair.on_path, config, params) for pair in pairs]
     off_spectra = [_extract_spectrum(pair.off_path, config, params) for pair in pairs]
     refractive_index, _ = odt(on_spectra, off_spectra, params, odt_config)
-    delta_n = -(jnp.real(refractive_index) - params.n_sol)
+    delta_n = config.ri_change_sign * (jnp.real(refractive_index) - params.n_sol)
     result = np.asarray(jax.device_get(delta_n), dtype=np.float32)
     expected_shape = (2 * params.aperturesize_px + 1, 2 * params.aperturesize_px + 1, params.freq_axial_extent_px)
     if result.shape != expected_shape:
         raise RuntimeError(f"Unexpected reconstruction shape: expected {expected_shape}, got {result.shape}")
     return result
+
+
+def _portable_path(path: Path, root: Path) -> str:
+    """Prefer a path relative to its configured root in run manifests."""
+    try:
+        return path.relative_to(root).as_posix()
+    except ValueError:
+        return str(path)
 
 
 def effective_manifest(config: MIPODTRunConfig) -> dict[str, Any]:
@@ -312,7 +322,7 @@ def effective_manifest(config: MIPODTRunConfig) -> dict[str, Any]:
                 "volume_rate_hz": 1.0 / config.frame_interval_s,
             }
         ),
-        "quantity": "delta_n_mip = n_off - n_on",
+        "quantity": f"delta_n_mip = {config.ri_change_sign:+g} * (n_reconstructed - n_medium)",
         "axis_order": "x, y, z",
         "dtype": "float32",
         "expected_shape": [
@@ -321,12 +331,14 @@ def effective_manifest(config: MIPODTRunConfig) -> dict[str, Any]:
             params.freq_axial_extent_px,
         ],
         "configuration": {
-            "path": str(config.source_path),
+            "path": _portable_path(config.source_path, REPO_ROOT),
         },
         "input": {
-            "image_dir": str(config.image_dir),
-            "pairing_csv": str(config.pairing_csv),
-            "volume_manifest_csv": (None if config.volume_manifest_csv is None else str(config.volume_manifest_csv)),
+            "image_dir": _portable_path(config.image_dir, DATA_DIR),
+            "pairing_csv": _portable_path(config.pairing_csv, REPO_ROOT),
+            "volume_manifest_csv": (
+                None if config.volume_manifest_csv is None else _portable_path(config.volume_manifest_csv, REPO_ROOT)
+            ),
             "legacy_pairing_semantics": "ImagePathA=MIR-ON, ImagePathB=MIR-OFF",
         },
         "optical": dataclasses.asdict(config.optical),
