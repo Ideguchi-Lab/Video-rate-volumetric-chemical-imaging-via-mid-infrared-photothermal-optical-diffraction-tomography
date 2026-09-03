@@ -11,6 +11,9 @@ dependencies = [
     "tifffile>=2024.8",
     "pyyaml>=6.0",
     "tqdm>=4.66",
+    "h5py>=3.11",
+    "scikit-learn>=1.5",
+    "pt3d",
     "muscopy[cuda]",
 ]
 
@@ -30,6 +33,7 @@ select = ["E", "F", "I", "W"]
 
 [tool.uv.sources]
 muscopy = { git = "ssh://git@github.com/Ideguchi-Lab/muscopy.git" }
+pt3d = { path = "vendor/ParticleTracker" }
 
 [dependency-groups]
 dev = [

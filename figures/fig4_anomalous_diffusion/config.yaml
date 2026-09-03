@@ -1,0 +1,92 @@
+schema_version: 1
+figure_id: fig4_anomalous_diffusion
+
+provenance:
+  particle_tracker_commit: dde2d890838ece2593c2f230ad7321ba1e1e15b1
+  fastfilters_commit: 48844dc3a661dc7bf365114e60e2a0917e294d5d
+
+data:
+  # Paths are relative to MIPODT_DATA_DIR.
+  volume_directory: fig4_anomalous_diffusion/mipodt
+  volume_pattern: 'mipodt_r_{:03d}.npy'
+  expected_volume_shape: [535, 535, 267]
+  expected_volume_dtype: float32
+  probability_path: fig4_anomalous_diffusion/tracking/region_1.h5
+  probability_dataset: exported_data
+  probability_axis_order: tzyxc
+  probability_shape: [70, 20, 340, 340, 2]
+  labels_path: fig4_anomalous_diffusion/tracking/region_1_lds.h5
+  labels_dataset: labels
+  subset_manifest_path: fig4_anomalous_diffusion/tracking/manifest_subset.yaml
+
+sampling:
+  frame_interval_s: 0.052
+  voxel_size_um: {x: 0.110, y: 0.110, z: 0.220}
+
+mipodt_slices:
+  volume_id: 9
+  z_indices: [125, 131]
+  colormap: inferno
+  display_range: [-0.0005, 0.004]
+  xy_pixel_size_um: 0.110
+  z_pixel_size_um: 0.220
+  scalebar_um: 10.0
+
+tracking:
+  crop: {z: [115, 135], y: [100, 440], x: [100, 440]}
+  frame_ids: {start: 0, stop: 70}
+  normalization_percentiles: [1.0, 99.0]
+  probability_class_channel: 1
+  probability_threshold: 0.8
+  minimum_component_voxels: 5
+  component_connectivity: 2
+  search_range_um: 0.5
+  memory: 5
+  min_track_length: 60
+
+diffusion:
+  max_lag_fraction: 0.3
+  fit_range_fraction: [0.1, 0.8]
+  minimum_alpha: 0.0
+
+bootstrap:
+  method: case_bootstrap_loglog_points
+  n_resamples: 500
+  ci_level: 0.95
+  random_seed: 42
+
+selected_particles:
+  trajectory_and_msd: 357
+  centroid_shift_and_component_msd: 411
+  centroid_boundary_frame: 53
+
+probability_regeneration:
+  region_name: region_1
+  input_dataset: data
+  labels_dataset: labels
+  output_dataset: exported_data
+  positive_label: 1
+  feature_scales: [0.7, 1.6, 3.5]
+  max_positive_samples: 120000
+  max_negative_samples: 120000
+  n_estimators: 300
+  max_depth: null
+  random_seed: 42
+
+plot:
+  formats: [png, eps]
+  dpi: 300
+  trajectory_colormap: viridis
+  trajectory_line_color: '#8fb3d9'
+  diffusion_color: '#90be6d'
+  diffusion_edge_color: '#3a5a40'
+  spatial_colormap: coolwarm
+  spatial_point_size: 50
+
+output:
+  slice_cache: analysis_cache.npz
+  detections_cache: detections.csv.gz
+  tracks_cache: tracks.csv.gz
+  particle_results_cache: particle_results.csv
+  bootstrap_cache: particle_case_bootstrap.csv
+  summary: analysis_summary.yaml

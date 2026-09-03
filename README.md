@@ -16,6 +16,7 @@ entry point per directory, shared helpers in a small package.
 │   │   └── output/          # generated, git-ignored
 │   ├── fig2_resolution/
 │   ├── fig3_multispectral/
+│   ├── fig4_anomalous_diffusion/
 │   └── figS1_noise/
 ├── src/mipodt_paper/        # shared code: paths, config loader, plotting style
 ├── scripts/
@@ -29,6 +30,7 @@ entry point per directory, shared helpers in a small package.
 ## Setup
 
 ```bash
+git submodule update --init --recursive
 uv sync                      # creates .venv with pinned deps (uv.lock)
 uv run scripts/download_data.py
 ```
@@ -50,6 +52,9 @@ Throughout this repository, 3D reconstruction from raw measurements is kept
 separate from downstream analysis of the reconstructed arrays. Figure 3
 follows this repository-wide convention and writes individual source figures
 rather than a new composite; see `figures/fig3_multispectral/README.md`.
+Figure 4 follows the same convention: released reconstructed volumes feed the
+public, commit-pinned tracking code and each source image is saved
+independently; see `figures/fig4_anomalous_diffusion/README.md`.
 
 ## Reconstruct the sequential MIP-ODT datasets
 

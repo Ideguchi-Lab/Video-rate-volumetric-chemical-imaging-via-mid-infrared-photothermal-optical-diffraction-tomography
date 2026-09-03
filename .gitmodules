@@ -1,0 +1,6 @@
+[submodule "vendor/ParticleTracker"]
+	path = vendor/ParticleTracker
+	url = https://github.com/Ideguchi-Lab/ParticleTracker.git
+[submodule "vendor/fastfilters"]
+	path = vendor/fastfilters
+	url = https://github.com/Ideguchi-Lab/fastfilters.git

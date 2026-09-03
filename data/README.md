@@ -23,6 +23,12 @@ data/
 │   │   ├── odt_cell.npy
 │   │   └── raw/{sample,reference}/  # added with the static raw release
 │   └── references/              # reference_spectra.csv + metadata YAML
+├── fig4_anomalous_diffusion/
+│   ├── mipodt/                  # real float32 (x,y,z), IDs 000-069
+│   └── tracking/
+│       ├── region_1.h5          # frozen probability map (t,z,y,x,class)
+│       ├── region_1_lds.h5      # public manual labels
+│       └── manifest_subset.yaml # label subset -> volume crop mapping
 ├── figS1/
 ├── anomalous_diffusion_20251224/
 │   └── VLXT-17M.I_700009766081_251224-172142/
@@ -48,6 +54,12 @@ The Figure 3 archive includes only the 42 hyperspectral volumes with calibrated
 wavenumber and power records (IDs 0–41). See
 `figures/fig3_multispectral/README.md` for the exact reference-spectrum schema,
 static-ODT contract, and generated outputs.
+
+The Figure 4 archive includes reconstructed volumes so users can proceed
+directly to tracking. Its frozen probability map is the default reproducible
+input; the labels and subset manifest enable the slower probability-regeneration
+audit. See `figures/fig4_anomalous_diffusion/README.md` for shapes, axes, and
+generated outputs.
 
 To keep raw and reconstructed arrays outside this checkout:
 

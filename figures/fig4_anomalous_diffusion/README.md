@@ -1,0 +1,86 @@
+# Figure 4 — video-rate particle tracking and anomalous diffusion
+
+This directory reproduces the individual source images used to assemble Figure 4. It does not create a new composite.
+The default path starts from the released reconstructed MIP-ODT volume and frozen probability map, then reruns
+connected-component detection, 3D linking, MSD fitting, and case bootstrap analysis.
+
+## Setup
+
+Clone the public dependencies at their recorded commits and create the locked environment:
+
+```bash
+git submodule update --init --recursive
+uv sync
+```
+
+The two submodule commits are also recorded in `config.yaml`. Particle linking and total 3D MSD analysis use the
+`ParticleTracker` submodule directly. `fastfilters` is fixed to the version used by the reconstruction environment.
+
+## Data contract
+
+Place the Zenodo files under `MIPODT_DATA_DIR` (default: `data/`) as follows:
+
+```text
+fig4_anomalous_diffusion/
+├── mipodt/
+│   ├── mipodt_r_000.npy
+│   ├── ...
+│   └── mipodt_r_069.npy
+└── tracking/
+    ├── region_1.h5
+    ├── region_1_lds.h5
+    └── manifest_subset.yaml
+```
+
+`mipodt_r_*.npy` is a real `float32` array with shape `(535, 535, 267)` and axis order `(x, y, z)`. The normal run
+only reads volume 9 for the displayed slices. The complete 0–69 sequence is needed only with
+`--recompute-probabilities`.
+
+`region_1.h5` contains the frozen `exported_data` probability dataset as `float32`, shape
+`(70, 20, 340, 340, 2)`, and axis order `(t, z, y, x, class)`. Channel 1 is the target-particle probability.
+`region_1_lds.h5` contains the public manual labels in dataset `labels`; `manifest_subset.yaml` maps its subset frames
+and z planes onto the reconstructed crop. Labels and the manifest are needed only for the explicit recomputation path.
+
+## Reproduce
+
+Validate the fast, complete path and then generate all images:
+
+```bash
+uv run figures/fig4_anomalous_diffusion/run.py --validate-only
+uv run figures/fig4_anomalous_diffusion/run.py
+```
+
+Re-plot from the portable CSV/NPZ cache without rerunning tracking:
+
+```bash
+uv run figures/fig4_anomalous_diffusion/run.py --plot-only
+```
+
+Regenerate the probability map from reconstructed volumes and labels before running the same downstream pipeline:
+
+```bash
+uv run figures/fig4_anomalous_diffusion/run.py --recompute-probabilities
+```
+
+The recomputation path is substantially slower and writes its normalized crop and regenerated probability map under
+`output/`. It implements the same frozen random-forest feature set and parameters recorded in `config.yaml`; it is a
+reproducibility audit, not the recommended routine path.
+
+## Outputs
+
+Every image is written independently as PNG and EPS:
+
+- `mipodt_z_slices`: volume 9 at z indices 125 and 131
+- `particle_357_trajectory_3d`: selected trajectory, colored by time
+- `particle_357_msd_loglog`: total 3D MSD and anomalous-diffusion fit
+- `particle_411_trajectory_centroid_shift`: two centroids split at frame 53
+- `particle_411_msd_xyz3d_loglog`: X, Y, Z, and total 3D MSD
+- `diffusion_scatter`: generalized diffusion coefficient versus case-bootstrap median exponent
+- `alpha_spatial`: mean track positions colored by case-bootstrap median exponent
+
+The output directory also contains the selected-particle MSD tables, `analysis_summary.yaml`, and portable analysis
+caches. Generated files are ignored by git.
+
+The expected numerical checkpoints are 50 accepted particles, particle 357 `alpha ≈ 0.322` and
+`D ≈ 1.04e-2 µm²/s^alpha`, and particle 411 component exponents X/Y/Z/3D of approximately
+0.682/0.337/0.137/0.446.
