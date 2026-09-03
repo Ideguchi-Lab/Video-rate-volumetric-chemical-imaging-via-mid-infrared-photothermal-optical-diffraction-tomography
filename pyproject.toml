@@ -33,7 +33,7 @@ select = ["E", "F", "I", "W"]
 
 [tool.uv.sources]
 muscopy = { git = "ssh://git@github.com/Ideguchi-Lab/muscopy.git" }
-pt3d = { path = "vendor/ParticleTracker" }
+pt3d = { path = "submodules/ParticleTracker" }
 
 [dependency-groups]
 dev = [

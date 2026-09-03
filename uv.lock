@@ -628,7 +628,7 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.9" },
     { name = "muscopy", extras = ["cuda"], git = "ssh://git@github.com/Ideguchi-Lab/muscopy.git" },
     { name = "numpy", specifier = ">=2.0" },
-    { name = "pt3d", directory = "vendor/ParticleTracker" },
+    { name = "pt3d", directory = "submodules/ParticleTracker" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "scikit-learn", specifier = ">=1.5" },
     { name = "scipy", specifier = ">=1.14" },
@@ -1128,7 +1128,7 @@ wheels = [
 [[package]]
 name = "pt3d"
 version = "0.1.0"
-source = { directory = "vendor/ParticleTracker" }
+source = { directory = "submodules/ParticleTracker" }
 dependencies = [
     { name = "numpy" },
     { name = "pandas" },

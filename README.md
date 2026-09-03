@@ -19,6 +19,9 @@ entry point per directory, shared helpers in a small package.
 │   ├── fig4_anomalous_diffusion/
 │   └── figS1_noise/
 ├── src/mipodt_paper/        # shared code: paths, config loader, plotting style
+├── submodules/               # commit-pinned public dependencies
+│   ├── ParticleTracker/
+│   └── fastfilters/
 ├── scripts/
 │   ├── download_data.py     # fetch dataset (URLs + sha256)
 │   ├── new_figure.py        # scaffold a new figure directory

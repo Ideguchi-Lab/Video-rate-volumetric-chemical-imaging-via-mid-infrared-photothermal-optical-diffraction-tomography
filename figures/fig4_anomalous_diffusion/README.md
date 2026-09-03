@@ -13,8 +13,9 @@ git submodule update --init --recursive
 uv sync
 ```
 
-The two submodule commits are also recorded in `config.yaml`. Particle linking and total 3D MSD analysis use the
-`ParticleTracker` submodule directly. `fastfilters` is fixed to the version used by the reconstruction environment.
+The two submodule commits are also recorded in `config.yaml`. Particle linking and total 3D MSD analysis use
+`submodules/ParticleTracker` directly. `submodules/fastfilters` is fixed to the version used by the reconstruction
+environment.
 
 ## Data contract
 
