@@ -7,7 +7,7 @@ has one entry point, with shared helpers in a small package.
 
 ```
 .
-├── figures/                 # one sub-directory per (supplementary) figure
+├── figures/                 # one sub-directory per figure
 │   ├── fig2_resolution/
 │   ├── fig3_multispectral/
 │   └── fig4_anomalous_diffusion/
