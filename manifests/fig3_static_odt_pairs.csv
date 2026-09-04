@@ -1,1 +1,12 @@
 angle_index,sample_path,reference_path
+0,sample/image0000011.tif,reference/image0000854.tif
+1,sample/image0000001.tif,reference/image0000855.tif
+2,sample/image0000002.tif,reference/image0000856.tif
+3,sample/image0000003.tif,reference/image0000857.tif
+4,sample/image0000004.tif,reference/image0000858.tif
+5,sample/image0000005.tif,reference/image0000859.tif
+6,sample/image0000006.tif,reference/image0000860.tif
+7,sample/image0000007.tif,reference/image0000861.tif
+8,sample/image0000008.tif,reference/image0000862.tif
+9,sample/image0000009.tif,reference/image0000863.tif
+10,sample/image0000010.tif,reference/image0000864.tif

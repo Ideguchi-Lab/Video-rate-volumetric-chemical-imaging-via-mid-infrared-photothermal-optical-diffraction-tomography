@@ -18,7 +18,7 @@ optical:
 
 reconstruction:
   approximation: Rytov
-  linear_approximation: true
+  linear_approximation: false
   hermite_symmetry: true
   edge_size_px: 5
   use_skimage_unwrap: true

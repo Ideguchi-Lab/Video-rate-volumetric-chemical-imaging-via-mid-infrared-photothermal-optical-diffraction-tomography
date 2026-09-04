@@ -27,10 +27,8 @@ the hyperspectral paper analysis.
 `fig2_resolution_static_pairs.csv` freezes the sample/reference ordering for
 the 11-angle static ODT acquisition.
 
-`fig3_static_odt_pairs.csv` defines the public sample/reference TIFF contract
-for the Figure 3 static ODT reconstruction. It currently contains only its
-header; rows with the frozen acquisition ordering are added when those raw
-TIFFs are deposited.
+`fig3_static_odt_pairs.csv` defines the sample/reference TIFF ordering for the
+Figure 3 static ODT reconstruction.
 
 `fig2_resolution_20251202_pairings.csv` freezes the 11 same-angle MIR-ON/OFF
 pairs used to regenerate the distributed `mipodt_r_000.npy`.
