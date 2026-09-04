@@ -2,7 +2,9 @@
 name = "mipodt-paper"
 version = "0.1.0"
 description = "Code to reproduce the figures of 'Video-rate volumetric chemical imaging via mid-infrared photothermal optical diffraction tomography'"
+authors = [{ name = "Ideguchi Lab." }]
 readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.12"
 dependencies = [
     "numpy>=2.0",

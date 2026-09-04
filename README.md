@@ -124,4 +124,4 @@ TODO: bibtex once published.
 
 ## License
 
-TODO
+This project is licensed under the [MIT License](LICENSE).
