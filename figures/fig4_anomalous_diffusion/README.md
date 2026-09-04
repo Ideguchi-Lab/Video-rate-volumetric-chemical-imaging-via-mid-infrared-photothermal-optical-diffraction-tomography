@@ -23,6 +23,8 @@ Place the Zenodo files under `MIPODT_DATA_DIR` (default: `data/`) as follows:
 
 ```text
 fig4_anomalous_diffusion/
+├── sequential_mipodt/
+│   └── holograms/                  # 1,420 TIFF holograms
 ├── mipodt/
 │   ├── mipodt_r_000.npy
 │   ├── ...
@@ -36,6 +38,9 @@ fig4_anomalous_diffusion/
 `mipodt_r_*.npy` is a real `float32` array with shape `(535, 535, 267)` and axis order `(x, y, z)`. The normal run
 only reads volume 9 for the displayed slices. The complete 0–69 sequence is needed only with
 `--recompute-probabilities`.
+
+The 1,420 TIFF files are the holograms referenced by volume IDs 0–69 in
+`manifests/anomalous_diffusion_20251224_pairings.csv`. They are needed only to repeat MIP-ODT reconstruction.
 
 `region_1.h5` contains the frozen `exported_data` probability dataset as `float32`, shape
 `(70, 20, 340, 340, 2)`, and axis order `(t, z, y, x, class)`. Channel 1 is the target-particle probability.
@@ -66,6 +71,17 @@ uv run figures/fig4_anomalous_diffusion/run.py --recompute-probabilities
 The recomputation path is substantially slower and writes its normalized crop and regenerated probability map under
 `output/`. It implements the same frozen random-forest feature set and parameters recorded in `config.yaml`; it is a
 reproducibility audit, not the recommended routine path.
+
+## Reconstruct the MIP-ODT sequence
+
+The reconstruction remains separate from the distributed NPY files. To write regenerated volumes to a separate
+directory, run:
+
+```bash
+uv run scripts/reconstruct_mipodt.py configs/reconstruction/anomalous_diffusion_20251224.yaml
+```
+
+Set `MIPODT_RECONSTRUCTION_DIR="$PWD/data"` only when intentionally replacing the distributed arrays.
 
 ## Outputs
 

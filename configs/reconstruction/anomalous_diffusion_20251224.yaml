@@ -8,7 +8,7 @@ acquisition:
 
 input:
   # image_dir is relative to MIPODT_DATA_DIR (defaults to ./data).
-  image_dir: anomalous_diffusion_20251224/VLXT-17M.I_700009766081_251224-172142
+  image_dir: fig4_anomalous_diffusion/sequential_mipodt/holograms
   # pairing_csv is repository-relative and is tracked with the analysis code.
   pairing_csv: manifests/anomalous_diffusion_20251224_pairings.csv
 
@@ -41,8 +41,8 @@ reconstruction:
   verbose: true
 
 output:
-  # Relative to MIPODT_RECONSTRUCTION_DIR (defaults to ./reconstructions).
-  directory: anomalous_diffusion_20251224
+  # With MIPODT_RECONSTRUCTION_DIR=data, this writes to the Zenodo data layout.
+  directory: fig4_anomalous_diffusion/mipodt
   filename_pattern: mipodt_r_{volume_id:03d}.npy
 
 preview:

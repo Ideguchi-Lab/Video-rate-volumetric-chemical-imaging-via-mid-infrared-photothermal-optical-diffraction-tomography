@@ -24,16 +24,14 @@ data/
 │   │   └── raw/{sample,reference}/  # added with the static raw release
 │   └── references/              # reference_spectra.csv + metadata YAML
 ├── fig4_anomalous_diffusion/
+│   ├── sequential_mipodt/
+│   │   └── holograms/           # TIFFs used by volume IDs 000-069
 │   ├── mipodt/                  # real float32 (x,y,z), IDs 000-069
 │   └── tracking/
 │       ├── region_1.h5          # frozen probability map (t,z,y,x,class)
 │       ├── region_1_lds.h5      # public manual labels
 │       └── manifest_subset.yaml # label subset -> volume crop mapping
 ├── figS1/
-├── anomalous_diffusion_20251224/
-│   └── VLXT-17M.I_700009766081_251224-172142/
-│       ├── image0000001.tif
-│       └── ...
 ```
 
 Each `figures/<fig>/README.md` lists the exact files it needs.
