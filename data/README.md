@@ -21,7 +21,7 @@ data/
 │   ├── static_odt/
 │   │   ├── odt_cell.npy
 │   │   └── raw/{sample,reference}/
-│   └── references/              # reference_spectra.csv + metadata YAML
+│   └── references/              # BSA FTIR + external NIST source definitions
 └── fig4_anomalous_diffusion/
 │   ├── sequential_mipodt/
 │   │   └── holograms/           # TIFFs used by volume IDs 000-069

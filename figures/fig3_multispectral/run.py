@@ -32,7 +32,7 @@ from mipodt_paper.multispectral import (
     discover_volume_paths,
     extract_power_normalized_spectra,
     fit_nonnegative_components,
-    load_reference_spectra,
+    load_reference_spectra_from_sources,
     load_volume_metadata,
     make_common_grid,
     portable_file_info,
@@ -61,8 +61,7 @@ def _configured_paths() -> dict[str, Path]:
     return {
         "mipodt_directory": _under(DATA_DIR, data["mipodt_directory"], "mipodt_directory"),
         "static_odt": _under(DATA_DIR, data["static_odt_path"], "static_odt_path"),
-        "reference_spectra": _under(DATA_DIR, data["reference_spectra_path"], "reference_spectra_path"),
-        "reference_metadata": _under(DATA_DIR, data["reference_metadata_path"], "reference_metadata_path"),
+        "reference_sources": _under(DATA_DIR, data["reference_sources_path"], "reference_sources_path"),
         "volume_metadata": _under(
             REPO_ROOT,
             data["volume_metadata_repository_path"],
@@ -79,23 +78,23 @@ def _rois() -> dict[str, Roi]:
     return {name: Roi.from_mapping(value) for name, value in CFG["rois"].items()}
 
 
-def _load_reference_metadata(path: Path, required_names: set[str]) -> dict[str, dict[str, Any]]:
+def _load_reference_sources(path: Path, required_names: set[str]) -> dict[str, dict[str, Any]]:
     with path.open(encoding="utf-8") as handle:
         raw = yaml.safe_load(handle) or {}
     references = raw.get("references")
     if not isinstance(references, dict):
-        raise ValueError(f"Reference metadata must contain a 'references' mapping: {path}")
+        raise ValueError(f"Reference source metadata must contain a 'references' mapping: {path}")
     missing = sorted(required_names - set(references))
     if missing:
-        raise ValueError(f"Reference metadata missing entries: {missing}")
+        raise ValueError(f"Reference source metadata missing entries: {missing}")
     result: dict[str, dict[str, Any]] = {}
     for name in required_names:
         entry = references[name]
         if not isinstance(entry, dict) or "native_fwhm_cm_inv" not in entry:
-            raise ValueError(f"Reference metadata '{name}' requires native_fwhm_cm_inv")
+            raise ValueError(f"Reference source metadata '{name}' requires native_fwhm_cm_inv")
         fwhm = float(entry["native_fwhm_cm_inv"])
         if fwhm < 0 or fwhm > float(CFG["nnls"]["common_resolution_fwhm_cm_inv"]):
-            raise ValueError(f"Reference metadata '{name}' has invalid native_fwhm_cm_inv={fwhm}")
+            raise ValueError(f"Reference source metadata '{name}' has invalid native_fwhm_cm_inv={fwhm}")
         result[name] = dict(entry)
         result[name]["native_fwhm_cm_inv"] = fwhm
     return result
@@ -136,9 +135,16 @@ def validate_inputs() -> dict[str, Any]:
     if not set(mip_slice_ids + spectrum_ids).issubset(expected_ids):
         raise ValueError("Configured MIP-ODT slice or spectrum volume IDs are outside IDs 0-41")
     required_references = {name for names in CFG["nnls"]["regions"].values() for name in names}
-    reference_x, reference_values = load_reference_spectra(paths["reference_spectra"], required_references)
-    reference_metadata = _load_reference_metadata(paths["reference_metadata"], required_references)
+    reference_metadata = _load_reference_sources(paths["reference_sources"], required_references)
     analysis_start, analysis_stop = (float(value) for value in CFG["nnls"]["analysis_range_cm_inv"])
+    reference_x, reference_values = load_reference_spectra_from_sources(
+        reference_metadata,
+        required_references,
+        data_root=DATA_DIR,
+        cache_directory=OUT / ".nist_reference_cache",
+        bounds=(analysis_start, analysis_stop),
+        grid_step_cm_inv=float(CFG["nnls"]["common_grid_step_cm_inv"]),
+    )
     if np.min(reference_x) > analysis_start or np.max(reference_x) < analysis_stop:
         raise ValueError("Reference spectra do not cover the configured 2800-3100 cm^-1 analysis range")
     if np.unique(reference_x).size != reference_x.size:
@@ -525,11 +531,16 @@ def _write_manifest(validated: Mapping[str, Any], outputs: list[Path]) -> Path:
     input_files.extend(portable_file_info(volume_paths[volume_id], DATA_DIR) for volume_id in sorted(volume_paths))
     input_files.extend(
         [
-            portable_file_info(paths["reference_spectra"], DATA_DIR),
-            portable_file_info(paths["reference_metadata"], DATA_DIR),
+            portable_file_info(paths["reference_sources"], DATA_DIR),
             portable_file_info(paths["volume_metadata"], REPO_ROOT),
         ]
     )
+    remote_references = []
+    for name, entry in sorted(validated["reference_metadata"].items()):
+        if entry.get("source_type") == "local_jasco_csv":
+            input_files.append(portable_file_info(_under(DATA_DIR, entry["path"], f"references.{name}.path"), DATA_DIR))
+        elif entry.get("source_type") == "nist_webbook_jcamp":
+            remote_references.append({"name": name, "url": entry["url"], "sha256": entry["sha256"]})
     manifest = {
         "schema_version": 1,
         "figure_id": CFG["figure_id"],
@@ -537,6 +548,7 @@ def _write_manifest(validated: Mapping[str, Any], outputs: list[Path]) -> Path:
         "axis_convention": CFG["array_convention"],
         "volume_ids": _range_ids(CFG["data"]["expected_volume_ids"]),
         "input_files": input_files,
+        "remote_reference_sources": remote_references,
         "configuration_snapshot": "config_snapshot.yaml",
         "analysis_cache": CACHE_PATH.name,
         "outputs": sorted(path.name for path in outputs),

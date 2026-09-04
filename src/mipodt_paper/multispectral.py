@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
+from urllib.parse import parse_qs, urlsplit
+from urllib.request import Request, urlopen
 
 import numpy as np
 from scipy import sparse
@@ -247,25 +250,163 @@ def area_normalize(wavenumbers: np.ndarray, values: np.ndarray, bounds: Sequence
     return y / area
 
 
-def load_reference_spectra(path: Path, required_names: Iterable[str]) -> tuple[np.ndarray, dict[str, np.ndarray]]:
-    """Load wide-form reference spectra from CSV."""
-    data = np.genfromtxt(path, delimiter=",", names=True, dtype=np.float64, encoding="utf-8")
-    if data.dtype.names is None or "wavenumber_cm_inv" not in data.dtype.names:
-        raise ValueError(f"Reference CSV lacks wavenumber_cm_inv: {path}")
-    if data.ndim == 0:
-        data = data.reshape(1)
-    names = tuple(required_names)
-    missing = sorted(set(names) - set(data.dtype.names))
-    if missing:
-        raise ValueError(f"Reference spectra missing columns: {missing}")
-    wavenumbers = np.asarray(data["wavenumber_cm_inv"], dtype=np.float64)
-    spectra = {name: np.asarray(data[name], dtype=np.float64) for name in names}
-    if wavenumbers.size < 3 or not np.all(np.isfinite(wavenumbers)):
-        raise ValueError("Reference wavenumbers must contain at least three finite values")
-    for name, values in spectra.items():
-        if not np.all(np.isfinite(values)):
-            raise ValueError(f"Reference spectrum '{name}' contains non-finite values")
-    return wavenumbers, spectra
+def _sha256(payload: bytes) -> str:
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _to_absorbance(values: np.ndarray, units: str) -> np.ndarray:
+    if "trans" not in units.lower() and units.strip().lower() not in {"t", "%t"}:
+        return values.astype(np.float64)
+    finite = values[np.isfinite(values)]
+    if finite.size == 0:
+        return values.astype(np.float64)
+    transmittance = values / 100.0 if np.max(finite) > 1.5 else values
+    return -np.log10(np.clip(transmittance, 1e-12, None))
+
+
+def _parse_jasco_csv(payload: bytes) -> tuple[np.ndarray, np.ndarray]:
+    lines = payload.decode("latin-1").splitlines()
+    xy_start = next((index for index, line in enumerate(lines) if line.strip().upper() == "XYDATA"), None)
+    if xy_start is None:
+        raise ValueError("JASCO reference does not contain an XYDATA block")
+    metadata: dict[str, str] = {}
+    for line in lines[:xy_start]:
+        row = next(csv.reader([line]))
+        if row and row[0].strip():
+            metadata[row[0].strip().upper()] = row[1].strip() if len(row) > 1 else ""
+    points: list[tuple[float, float]] = []
+    for line in lines[xy_start + 1 :]:
+        row = next(csv.reader([line]))
+        if len(row) < 2:
+            break
+        try:
+            points.append((float(row[0]), float(row[1])))
+        except ValueError:
+            break
+    if len(points) < 3:
+        raise ValueError("JASCO reference contains fewer than three numeric points")
+    array = np.asarray(points, dtype=np.float64)
+    order = np.argsort(array[:, 0])
+    return array[order, 0], _to_absorbance(array[order, 1], metadata.get("YUNITS", ""))
+
+
+def _jcamp_metadata(lines: Sequence[str]) -> dict[str, str]:
+    metadata: dict[str, str] = {}
+    for line in lines:
+        if line.startswith("##") and "=" in line:
+            key, value = line[2:].split("=", 1)
+            metadata[key.strip().upper()] = value.strip()
+            if key.strip().upper() == "XYDATA":
+                break
+    return metadata
+
+
+def _parse_jcamp(payload: bytes) -> tuple[np.ndarray, np.ndarray]:
+    lines = payload.decode("latin-1").splitlines()
+    metadata = _jcamp_metadata(lines)
+    xy_start = next((index for index, line in enumerate(lines) if line.upper().startswith("##XYDATA=")), None)
+    if xy_start is None or "X++" not in metadata.get("XYDATA", "").upper():
+        raise ValueError("NIST reference does not contain a supported XYDATA=(X++(Y..Y)) block")
+    first_x = float(metadata["FIRSTX"].split()[0])
+    last_x = float(metadata["LASTX"].split()[0])
+    npoints = int(float(metadata["NPOINTS"].split()[0]))
+    x_factor = float(metadata.get("XFACTOR", "1").split()[0])
+    y_factor = float(metadata.get("YFACTOR", "1").split()[0])
+    default_delta = abs(last_x - first_x) / max(npoints - 1, 1)
+    delta_x = abs(float(metadata.get("DELTAX", str(default_delta)).split()[0]))
+    direction = 1.0 if last_x >= first_x else -1.0
+    x_values: list[float] = []
+    y_values: list[float] = []
+    number_pattern = re.compile(r"[-+]?\d*\.?\d+(?:[Ee][-+]?\d+)?")
+    for line in lines[xy_start + 1 :]:
+        if line.startswith("##"):
+            break
+        if not line.strip() or line.startswith("$$"):
+            continue
+        numbers = [float(token) for token in number_pattern.findall(line)]
+        if len(numbers) < 2:
+            continue
+        row_x = numbers[0] * x_factor
+        for offset, value in enumerate(numbers[1:]):
+            x_values.append(row_x + direction * delta_x * offset * x_factor)
+            y_values.append(value * y_factor)
+    if len(x_values) < npoints:
+        raise ValueError(f"NIST reference contains {len(x_values)} points, expected {npoints}")
+    x = np.asarray(x_values[:npoints], dtype=np.float64)
+    y = np.asarray(y_values[:npoints], dtype=np.float64)
+    order = np.argsort(x)
+    return x[order], _to_absorbance(y[order], metadata.get("YUNITS", ""))
+
+
+def _nist_payload(name: str, entry: Mapping[str, Any], cache_directory: Path) -> bytes:
+    url = str(entry["url"])
+    parsed = urlsplit(url)
+    query = parse_qs(parsed.query)
+    if parsed.scheme != "https" or parsed.hostname != "webbook.nist.gov" or query.get("Type") != ["IR"]:
+        raise ValueError(f"Reference '{name}' has an invalid NIST Chemistry WebBook URL")
+    expected_hash = str(entry["sha256"]).lower()
+    if not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
+        raise ValueError(f"Reference '{name}' has an invalid SHA-256")
+    cache_directory.mkdir(parents=True, exist_ok=True)
+    cached = cache_directory / f"{name}.jdx"
+    if cached.exists():
+        payload = cached.read_bytes()
+        if _sha256(payload) == expected_hash:
+            return payload
+    request = Request(url, headers={"User-Agent": "mipodt-paper/0.1 (scientific reproducibility)"})
+    try:
+        with urlopen(request, timeout=30) as response:
+            payload = response.read()
+    except OSError as exc:
+        raise RuntimeError(f"Could not download NIST reference '{name}' from {url}") from exc
+    actual_hash = _sha256(payload)
+    if actual_hash != expected_hash:
+        raise ValueError(
+            f"NIST reference '{name}' SHA-256 mismatch: expected {expected_hash}, downloaded {actual_hash}"
+        )
+    temporary = cached.with_suffix(".tmp")
+    temporary.write_bytes(payload)
+    temporary.replace(cached)
+    return payload
+
+
+def load_reference_spectra_from_sources(
+    sources: Mapping[str, Mapping[str, Any]],
+    required_names: Iterable[str],
+    *,
+    data_root: Path,
+    cache_directory: Path,
+    bounds: Sequence[float],
+    grid_step_cm_inv: float,
+) -> tuple[np.ndarray, dict[str, np.ndarray]]:
+    """Load the local BSA spectrum and pinned NIST WebBook references."""
+    low, high = sorted(float(value) for value in bounds)
+    if grid_step_cm_inv <= 0:
+        raise ValueError("Reference grid step must be positive")
+    grid = np.arange(low, high + grid_step_cm_inv * 0.5, grid_step_cm_inv, dtype=np.float64)
+    spectra: dict[str, np.ndarray] = {}
+    for name in required_names:
+        entry = sources[name]
+        source_type = entry.get("source_type")
+        if source_type == "local_jasco_csv":
+            path = (data_root / str(entry["path"])).resolve()
+            try:
+                path.relative_to(data_root.resolve())
+            except ValueError as exc:
+                raise ValueError(f"Reference '{name}' escapes the data root") from exc
+            payload = path.read_bytes()
+            expected_hash = str(entry["sha256"]).lower()
+            if _sha256(payload) != expected_hash:
+                raise ValueError(f"Local reference '{name}' SHA-256 does not match reference_sources.yaml")
+            x, y = _parse_jasco_csv(payload)
+        elif source_type == "nist_webbook_jcamp":
+            x, y = _parse_jcamp(_nist_payload(name, entry, cache_directory))
+        else:
+            raise ValueError(f"Reference '{name}' has unsupported source_type={source_type!r}")
+        if x[0] > low or x[-1] < high:
+            raise ValueError(f"Reference '{name}' does not cover {low:g}-{high:g} cm^-1")
+        spectra[name] = np.interp(grid, x, y)
+    return grid, spectra
 
 
 def prepare_spectrum(

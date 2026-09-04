@@ -37,13 +37,15 @@ fig3_multispectral/
 │       ├── sample/
 │       └── reference/
 └── references/
-    ├── reference_spectra.csv
-    └── reference_metadata.yaml
+    ├── bsa_ftir.csv
+    └── reference_sources.yaml
 ```
 
-`reference_spectra.csv` is wide-form and must contain
-`wavenumber_cm_inv,bsa,guanosine,oleic_acid,cholesterol`. The YAML metadata
-contains a `references` mapping with `native_fwhm_cm_inv` for each reference.
+`bsa_ftir.csv` is the locally measured BSA spectrum. The YAML file records its
+checksum and the official NIST Chemistry WebBook URLs, identifiers, spectral
+resolutions, and checksums for guanosine, oleic acid, and cholesterol. The NIST
+spectra are not redistributed in the Zenodo archive; `run.py` downloads the
+pinned JCAMP-DX files into `output/.nist_reference_cache/` when needed.
 The DOI and archive checksums will be added at publication time.
 
 ## Validate and run the analysis

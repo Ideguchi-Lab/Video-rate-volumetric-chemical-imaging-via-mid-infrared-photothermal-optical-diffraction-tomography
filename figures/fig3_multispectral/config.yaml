@@ -6,8 +6,7 @@ data:
   mipodt_directory: fig3_multispectral/mipodt
   mipodt_filename_regex: 'mipodt_r_(?P<volume_id>\d{3})\.npy'
   static_odt_path: fig3_multispectral/static_odt/odt_cell.npy
-  reference_spectra_path: fig3_multispectral/references/reference_spectra.csv
-  reference_metadata_path: fig3_multispectral/references/reference_metadata.yaml
+  reference_sources_path: fig3_multispectral/references/reference_sources.yaml
   volume_metadata_repository_path: manifests/hyperspectral_20251214_volumes.csv
   expected_volume_ids: {start: 0, stop: 42}
   expected_shape: [535, 535, 267]
