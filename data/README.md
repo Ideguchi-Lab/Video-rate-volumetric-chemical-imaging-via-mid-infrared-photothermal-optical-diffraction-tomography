@@ -1,12 +1,10 @@
 # Data
 
-Raw measurements are **not** tracked in git. Place them here (or anywhere and
-point `MIPODT_DATA_DIR` at it) with the layout below, or run
-`uv run scripts/download_data.py` once the dataset is published.
+Raw measurements are **not** tracked in git. Place the unpacked Zenodo data
+here, or point `MIPODT_DATA_DIR` at it, with the layout below.
 
 ```
 data/
-├── fig1/
 ├── fig2_resolution/
 │   ├── mipodt/
 │   │   └── mipodt_r_000.npy
@@ -19,19 +17,20 @@ data/
 ├── fig3_multispectral/
 │   ├── hyperspectral_raw/       # raw hyperspectral TIFF holograms
 │   ├── mipodt/                  # mipodt_r_000.npy ... mipodt_r_041.npy
+│   ├── metadata/                # pairing and MIR calibration CSVs
 │   ├── static_odt/
 │   │   ├── odt_cell.npy
-│   │   └── raw/{sample,reference}/  # added with the static raw release
+│   │   └── raw/{sample,reference}/
 │   └── references/              # reference_spectra.csv + metadata YAML
-├── fig4_anomalous_diffusion/
+└── fig4_anomalous_diffusion/
 │   ├── sequential_mipodt/
 │   │   └── holograms/           # TIFFs used by volume IDs 000-069
 │   ├── mipodt/                  # real float32 (x,y,z), IDs 000-069
+│   ├── metadata/                # MIR-ON/OFF pairing CSV
 │   └── tracking/
 │       ├── region_1.h5          # frozen probability map (t,z,y,x,class)
 │       ├── region_1_lds.h5      # public manual labels
 │       └── manifest_subset.yaml # label subset -> volume crop mapping
-├── figS1/
 ```
 
 Each `figures/<fig>/README.md` lists the exact files it needs.

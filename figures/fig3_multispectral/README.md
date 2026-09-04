@@ -27,9 +27,13 @@ fig3_multispectral/
 │   ├── mipodt_r_000.npy
 │   ├── ...
 │   └── mipodt_r_041.npy               # 42 calibrated float32 volumes only
+├── metadata/
+│   ├── hyperspectral_20251214_pairings.csv
+│   ├── hyperspectral_20251214_volumes.csv
+│   └── fig3_static_odt_pairs.csv
 ├── static_odt/
 │   ├── odt_cell.npy                   # delta_n = n_sample - n_medium
-│   └── raw/                            # added when static raw data are released
+│   └── raw/
 │       ├── sample/
 │       └── reference/
 └── references/
@@ -109,9 +113,8 @@ archive layout consumed by the figure analysis, set
 
 ## Reconstruct the static ODT volume
 
-The static sample/reference TIFFs are not yet distributed. The independent
-interface, pairing-table schema, and frozen defaults can already be inspected;
-validation will report the empty pairing table until the raw TIFFs are added:
+The archive contains 11 sample and 11 reference TIFF holograms. Their
+illumination-angle ordering is fixed by `manifests/fig3_static_odt_pairs.csv`:
 
 ```bash
 uv run scripts/reconstruct_static_odt.py \

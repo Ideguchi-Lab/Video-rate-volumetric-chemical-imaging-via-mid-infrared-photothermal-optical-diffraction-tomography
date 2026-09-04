@@ -29,6 +29,8 @@ fig4_anomalous_diffusion/
 │   ├── mipodt_r_000.npy
 │   ├── ...
 │   └── mipodt_r_069.npy
+├── metadata/
+│   └── anomalous_diffusion_20251224_pairings.csv
 └── tracking/
     ├── region_1.h5
     ├── region_1_lds.h5

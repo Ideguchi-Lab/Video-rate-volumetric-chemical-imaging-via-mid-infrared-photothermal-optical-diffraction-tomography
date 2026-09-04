@@ -1,31 +1,23 @@
 # Video-rate volumetric chemical imaging via mid-infrared photothermal optical diffraction tomography
 
-Code to reproduce every figure of the paper. One directory per figure, one
-entry point per directory, shared helpers in a small package.
+Code and data contracts for reproducing Figures 2–4 of the paper. Each figure
+has one entry point, with shared helpers in a small package.
 
 ## Layout
 
 ```
 .
 ├── figures/                 # one sub-directory per (supplementary) figure
-│   ├── _template/           # copied by scripts/new_figure.py
-│   ├── fig1_system/
-│   │   ├── README.md        # panels, required data, runtime
-│   │   ├── config.yaml      # all parameters (no magic numbers in run.py)
-│   │   ├── run.py           # compute() -> cache.npz -> plot() -> output/fig1.{pdf,png}
-│   │   └── output/          # generated, git-ignored
 │   ├── fig2_resolution/
 │   ├── fig3_multispectral/
-│   ├── fig4_anomalous_diffusion/
-│   └── figS1_noise/
+│   └── fig4_anomalous_diffusion/
 ├── src/mipodt_paper/        # shared code: paths, config loader, plotting style
 ├── submodules/               # commit-pinned public dependencies
 │   ├── ParticleTracker/
 │   └── fastfilters/
 ├── scripts/
-│   ├── download_data.py     # fetch dataset (URLs + sha256)
-│   ├── new_figure.py        # scaffold a new figure directory
 │   ├── reconstruct_mipodt.py # reconstruct sequential MIP-ODT volumes
+│   ├── reconstruct_static_odt.py # reconstruct static ODT volumes
 │   └── preview_mipodt.py    # render quick-look XY planes
 └── data/                    # raw data (git-ignored), see data/README.md
 ```
@@ -35,16 +27,17 @@ entry point per directory, shared helpers in a small package.
 ```bash
 git submodule update --init --recursive
 uv sync                      # creates .venv with pinned deps (uv.lock)
-uv run scripts/download_data.py
 ```
 
-Raw data can live elsewhere: `export MIPODT_DATA_DIR=/path/to/data`.
+Place the Zenodo data under `data/`, or set
+`MIPODT_DATA_DIR=/path/to/unpacked-data`.
 
 ## Reproduce
 
 ```bash
-uv run figures/fig1_system/run.py          # one figure
-uv run figures/fig1_system/run.py --plot-only   # re-plot from cached arrays
+uv run figures/fig2_resolution/run.py
+uv run figures/fig3_multispectral/run.py
+uv run figures/fig4_anomalous_diffusion/run.py
 ```
 
 Each figure README records its output contract. Figure 2 preserves the
@@ -116,12 +109,6 @@ Large outputs default to dataset-named directories under `reconstructions/`.
 Set `MIPODT_RECONSTRUCTION_DIR` to place them on another disk. Every run writes
 a `run_manifest.yaml` containing the effective optical parameters, sampling,
 software versions, pair counts, selected volume IDs, and correction settings.
-
-## Adding a figure
-
-```bash
-uv run scripts/new_figure.py fig4_spectra --title "Hyperspectral imaging"
-```
 
 ## Development
 
