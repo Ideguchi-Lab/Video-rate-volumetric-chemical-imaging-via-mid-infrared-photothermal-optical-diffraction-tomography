@@ -626,7 +626,7 @@ dev = [
 requires-dist = [
     { name = "h5py", specifier = ">=3.11" },
     { name = "matplotlib", specifier = ">=3.9" },
-    { name = "muscopy", extras = ["cuda"], git = "ssh://git@github.com/Ideguchi-Lab/muscopy.git" },
+    { name = "muscopy", extras = ["cuda"], specifier = "==1.0.2" },
     { name = "numpy", specifier = ">=2.0" },
     { name = "pt3d", directory = "submodules/ParticleTracker" },
     { name = "pyyaml", specifier = ">=6.0" },
@@ -685,15 +685,20 @@ wheels = [
 
 [[package]]
 name = "muscopy"
-version = "1.0.1"
-source = { git = "ssh://git@github.com/Ideguchi-Lab/muscopy.git#a1c346029fc61e7dfdf696adf571f993915879ea" }
+version = "1.0.2"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jax" },
     { name = "jaxlib" },
+    { name = "numpy" },
     { name = "scikit-image" },
     { name = "tqdm" },
     { name = "types-tqdm" },
     { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a7/1b/09e5f153369d3c85fef74d88a51aedfb5183d6671ccbb4766d18cb7c2f9c/muscopy-1.0.2.tar.gz", hash = "sha256:41305fc6033f4865936f9314c56ec5cfbd6eefabe3e8cef78b7e3746601321ed", size = 51751, upload-time = "2026-09-09T08:10:46.96Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f2/e4/79beb7a2f5ce56d25b216bb42b6d5c1b3aa689634af963464f1f5a459810/muscopy-1.0.2-py3-none-any.whl", hash = "sha256:60087675663e06a60ee39eac15334614cda3a75879bcc7a4b050d18572cffd43", size = 35914, upload-time = "2026-09-09T08:10:45.61Z" },
 ]
 
 [package.optional-dependencies]
@@ -1127,7 +1132,7 @@ wheels = [
 
 [[package]]
 name = "pt3d"
-version = "0.1.0"
+version = "1.0.0"
 source = { directory = "submodules/ParticleTracker" }
 dependencies = [
     { name = "numpy" },

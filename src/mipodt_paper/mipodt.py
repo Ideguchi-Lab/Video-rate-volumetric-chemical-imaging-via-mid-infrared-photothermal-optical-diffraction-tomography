@@ -18,10 +18,11 @@ from muscopy.cfg import ArrayPrecision
 from muscopy.dh import get_spectrum
 from muscopy.odt import EwaldEmbeddingMode, ODTConfig, ODTParameters, odt
 
+from mipodt_paper.legacy_odt import odt_with_legacy_placement
 from mipodt_paper.pairing import MIPPair
 from mipodt_paper.paths import DATA_DIR, RECONSTRUCTION_DIR, REPO_ROOT
 
-REQUIRED_MUSCOPY_VERSION = "1.0.1"
+REQUIRED_MUSCOPY_VERSION = "1.0.2"
 
 
 @dataclass(frozen=True, slots=True)
@@ -57,6 +58,7 @@ class AlgorithmConfig:
     integer_precision_bits: int
     float_precision_bits: int
     verbose: bool
+    spectrum_placement: str = "muscopy"
 
     def validate_paper_profile(self) -> None:
         """Validate explicitly recorded reconstruction settings."""
@@ -70,6 +72,8 @@ class AlgorithmConfig:
             raise ValueError("The paper reconstruction pipeline requires legacy 'truncate' Ewald embedding")
         if self.edge_size_px < 0:
             raise ValueError("edge_size_px must be non-negative")
+        if self.spectrum_placement not in ("muscopy", "legacy"):
+            raise ValueError("spectrum_placement must be 'muscopy' or 'legacy'")
 
 
 @dataclass(frozen=True, slots=True)
@@ -214,6 +218,7 @@ def load_mipodt_config(
         integer_precision_bits=int(algorithm_raw["integer_precision_bits"]),
         float_precision_bits=int(algorithm_raw["float_precision_bits"]),
         verbose=bool(algorithm_raw.get("verbose", False)),
+        spectrum_placement=str(algorithm_raw.get("spectrum_placement", "muscopy")),
     )
     algorithm.validate_paper_profile()
 
@@ -259,7 +264,7 @@ def load_mipodt_config(
 
 
 def validate_muscopy_version() -> None:
-    """Fail before a large reconstruction when muscopy is not v1.0.1."""
+    """Fail before a large reconstruction when muscopy is not the pinned release."""
     installed = version("muscopy")
     if installed != REQUIRED_MUSCOPY_VERSION:
         raise RuntimeError(f"This reconstruction requires muscopy {REQUIRED_MUSCOPY_VERSION}, found {installed}")
@@ -291,7 +296,8 @@ def reconstruct_mipodt_volume(config: MIPODTRunConfig, pairs: list[MIPPair]) -> 
     odt_config = config.make_odt_config()
     on_spectra = [_extract_spectrum(pair.on_path, config, params) for pair in pairs]
     off_spectra = [_extract_spectrum(pair.off_path, config, params) for pair in pairs]
-    refractive_index, _ = odt(on_spectra, off_spectra, params, odt_config)
+    reconstruct = odt_with_legacy_placement if config.algorithm.spectrum_placement == "legacy" else odt
+    refractive_index, _ = reconstruct(on_spectra, off_spectra, params, odt_config)
     delta_n = config.ri_change_sign * (jnp.real(refractive_index) - params.n_sol)
     result = np.asarray(jax.device_get(delta_n), dtype=np.float32)
     expected_shape = (2 * params.aperturesize_px + 1, 2 * params.aperturesize_px + 1, params.freq_axial_extent_px)

@@ -52,11 +52,15 @@ wavenumber and power records (IDs 0–41). See
 `figures/fig3_multispectral/README.md` for the exact reference-spectrum schema,
 static-ODT contract, and generated outputs.
 
+Figure 3 MIP-ODT slices and ROI spectra use the same volumes reconstructed
+from `fig3_multispectral/hyperspectral_raw/`. Static ODT is reconstructed from
+`fig3_multispectral/static_odt/raw/`.
+
 The Figure 4 archive includes reconstructed volumes so users can proceed
 directly to tracking. Its frozen probability map is the default reproducible
-input; the labels and subset manifest enable the slower probability-regeneration
-audit. See `figures/fig4_anomalous_diffusion/README.md` for shapes, axes, and
-generated outputs.
+input; the labels and subset manifest enable regeneration of that map from
+the reconstructed volumes. See `figures/fig4_anomalous_diffusion/README.md`
+for shapes, axes, and generated outputs.
 
 To keep raw and reconstructed arrays outside this checkout:
 

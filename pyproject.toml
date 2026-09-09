@@ -15,8 +15,8 @@ dependencies = [
     "tqdm>=4.66",
     "h5py>=3.11",
     "scikit-learn>=1.5",
-    "pt3d",
-    "muscopy[cuda]",
+    "pt3d==1.0.0",
+    "muscopy[cuda]==1.0.2",
 ]
 
 [build-system]
@@ -34,7 +34,6 @@ target-version = "py312"
 select = ["E", "F", "I", "W"]
 
 [tool.uv.sources]
-muscopy = { git = "ssh://git@github.com/Ideguchi-Lab/muscopy.git" }
 pt3d = { path = "submodules/ParticleTracker" }
 
 [dependency-groups]

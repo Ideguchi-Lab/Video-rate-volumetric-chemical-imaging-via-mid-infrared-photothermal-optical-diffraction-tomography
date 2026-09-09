@@ -32,23 +32,36 @@ odt_slices:
   z_indices: [135, 140]
   crop: {axis0: [150, 450], axis1: [100, 400]}
   cmap: Greys_r
-  display_range: [1.33, 1.38]
+  # Absolute RI: delta_n range [-0.003, 0.03] plus medium RI 1.33.
+  display_range: [1.327, 1.360]
+  figsize_per_slice: [4.0, 3.5]
+  title: ODT
+  font_family: Arial
+  title_fontsize: 24
+  z_label_fontsize: 24
+  colorbar_fontsize: 20
+  colorbar_title_fontsize: 24
   scalebar_um: 10.0
+  scalebar_fontsize: 20
   arrows:
-    - {name: lipid_droplet, z_index: 135, target: [326, 146], label: [350, 125], color: cyan}
-    - {name: er_mixed, z_index: 135, target: [268, 233], label: [240, 205], color: cyan}
-    - {name: nucleolus, z_index: 140, target: [310, 320], label: [340, 350], color: cyan}
+    length_um: 5.0
+    head_width_um: 2.0
+    head_length_um: 1.5
+    linewidth: 3.0
+    offset_angle_deg: -135.0
+    colors: {lipid_droplet: "#1f77b4", er_mixed: "#ff7f0e", nucleolus: "#2ca02c"}
 
 mipodt_slices:
+  # Use the same seed-reconstructed volumes as the ROI spectra, normalized once by power.
+  source: reconstructed_volumes
   volume_ids: [25, 23, 14]
   z_indices: [135, 140]
   crop: {axis0: [150, 450], axis1: [100, 400]}
   cmap: inferno
-  # Rows are independently scaled after division by the volume's laser power.
-  row_display_ranges:
-    "25": [-0.00010, 0.00070]
-    "23": [-0.00010, 0.00070]
-    "14": [-0.00010, 0.00070]
+  # Each row shares a scale across both crops, with a minimum upper limit for volume 14.
+  vmin: 0.0
+  vmax_percentile: 100.0
+  row_vmax_floors: {"14": 0.00006}
   scalebar_um: 10.0
 
 spectra:
@@ -61,6 +74,7 @@ nnls:
   area_and_fit_range_cm_inv: [2830.0, 3027.0]
   common_resolution_fwhm_cm_inv: 16.0
   common_grid_step_cm_inv: 0.5
+  minimum_fit_points: 8
   regions:
     nucleolus: [bsa, guanosine, oleic_acid]
     lipid_droplet: [oleic_acid, cholesterol]
@@ -68,10 +82,27 @@ nnls:
 plot:
   dpi: 300
   font_size: 10
-  spectrum_colors:
-    lipid_droplet: "#d62728"
-    er_mixed: "#2ca02c"
-    nucleolus: "#1f77b4"
+  spectrum_styles:
+    lipid_droplet: {color: "#1f77b4", marker: o, linestyle: "-", label: Region 1}
+    er_mixed: {color: "#ff7f0e", marker: s, linestyle: "--", label: Region 2}
+    nucleolus: {color: "#2ca02c", marker: "^", linestyle: "-.", label: Region 3}
+  lipid_nucleolus_ylim: [-0.00001, 0.000105]
+  measurement_time_ylim_ms: [0.0, 1150.0]
+  nnls_styles:
+    nucleolus:
+      title: Nucleolus
+      marker: "^"
+      markersize: 6
+      color: "#20a85b"
+      reference_colors: {bsa: "#8fca10", guanosine: "#ffb52e", oleic_acid: "#8f5a99"}
+      ratio_order: [oleic_acid, guanosine, bsa]
+    lipid_droplet:
+      title: Lipid droplet
+      marker: o
+      markersize: 3.2
+      color: "#1f77b4"
+      reference_colors: {oleic_acid: "#8fca10", cholesterol: "#ffb52e"}
+      ratio_order: [oleic_acid, cholesterol]
 
 output:
   cache: analysis_cache.npz

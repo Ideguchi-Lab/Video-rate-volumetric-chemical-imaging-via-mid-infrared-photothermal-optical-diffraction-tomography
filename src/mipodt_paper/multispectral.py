@@ -58,11 +58,12 @@ class VolumeMetadata:
     volume_id: int
     wavenumber_cm_inv: float
     power_mw: float
+    time_ms: float = 0.0
 
 
 @dataclass(frozen=True, slots=True)
 class NnlsResult:
-    """One constrained spectral fit on the common wavenumber grid."""
+    """One constrained spectral fit on the measured wavenumber points."""
 
     component_names: tuple[str, ...]
     coefficients: np.ndarray
@@ -87,13 +88,15 @@ def validate_real_float32_volume(volume: np.ndarray, expected_shape: Sequence[in
 
 def load_volume_metadata(path: Path, expected_ids: Sequence[int]) -> list[VolumeMetadata]:
     """Load and validate the calibrated volume-to-wavenumber manifest."""
-    required = {"volume_id", "wavenumber_cm_inv", "power_mw"}
+    required = {"volume_id", "wavenumber_cm_inv", "power_mw", "time_ms"}
     with path.open(newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
         if reader.fieldnames is None or not required.issubset(reader.fieldnames):
             raise ValueError(f"Volume metadata must contain {sorted(required)}: {path}")
         rows = [
-            VolumeMetadata(int(row["volume_id"]), float(row["wavenumber_cm_inv"]), float(row["power_mw"]))
+            VolumeMetadata(
+                int(row["volume_id"]), float(row["wavenumber_cm_inv"]), float(row["power_mw"]), float(row["time_ms"])
+            )
             for row in reader
         ]
     ids = [row.volume_id for row in rows]
@@ -111,6 +114,8 @@ def load_volume_metadata(path: Path, expected_ids: Sequence[int]) -> list[Volume
         raise ValueError("Wavenumbers must be finite")
     if any(not np.isfinite(row.power_mw) or row.power_mw <= 0 for row in ordered):
         raise ValueError("Laser powers must be finite and positive")
+    if any(not np.isfinite(row.time_ms) for row in ordered):
+        raise ValueError("Measurement times must be finite")
     return ordered
 
 
@@ -154,7 +159,8 @@ def validate_volume_files(paths: Mapping[int, Path], expected_shape: Sequence[in
 def roi_mean(volume: np.ndarray, roi: Roi) -> float:
     """Return the real-valued mean inside a validated half-open ROI."""
     roi.validate(volume.shape)
-    return float(np.mean(np.real(volume[roi.selection]), dtype=np.float64))
+    # Match the paper analysis by averaging in the stored dtype (float32).
+    return float(np.mean(np.real(volume[roi.selection])))
 
 
 def extract_power_normalized_spectra(
@@ -190,13 +196,14 @@ def asls_baseline(values: np.ndarray, lam: float = 1e5, p: float = 0.01, iterati
         raise ValueError("AsLS input must be a finite one-dimensional array with at least three values")
     if lam <= 0 or not 0 < p < 1 or iterations < 1:
         raise ValueError("AsLS requires lambda > 0, 0 < p < 1, and iterations >= 1")
-    difference = sparse.diags([1.0, -2.0, 1.0], [0, 1, 2], shape=(y.size - 2, y.size), format="csc")
-    penalty = lam * (difference.T @ difference)
+    # Preserve the paper analysis's sparse representation and multiplication order:
+    # equivalent algebra can change the ill-conditioned solve at roundoff level.
+    difference = sparse.diags([1.0, -2.0, 1.0], [0, 1, 2], shape=(y.size - 2, y.size))
     weights = np.ones(y.size, dtype=np.float64)
     baseline = np.zeros_like(y)
     for _ in range(iterations):
         weight_matrix = sparse.spdiags(weights, 0, y.size, y.size)
-        baseline = np.asarray(spsolve(weight_matrix + penalty, weights * y))
+        baseline = np.asarray(spsolve((weight_matrix + lam * difference.T @ difference).tocsc(), weights * y))
         weights = np.where(y > baseline, p, 1.0 - p)
     return baseline
 
@@ -233,18 +240,19 @@ def broaden_to_fwhm(
     additional_fwhm = np.sqrt(target_fwhm_cm_inv**2 - native_fwhm_cm_inv**2)
     if additional_fwhm == 0:
         return y.copy()
-    sigma_points = additional_fwhm / (2 * np.sqrt(2 * np.log(2))) / spacing[0]
+    # FWHM-to-sigma conversion uses the rounded constant from the paper analysis.
+    sigma_points = additional_fwhm * (1.0 / 2.35482) / spacing[0]
     return gaussian_filter1d(y, sigma_points, mode="nearest")
 
 
 def area_normalize(wavenumbers: np.ndarray, values: np.ndarray, bounds: Sequence[float]) -> np.ndarray:
-    """Normalize by signed trapezoidal area inside a closed fit interval."""
+    """Normalize by positive trapezoidal area, preserving negative signal values."""
     x = np.asarray(wavenumbers, dtype=np.float64)
     y = np.asarray(values, dtype=np.float64)
     mask = (x >= float(bounds[0])) & (x <= float(bounds[1]))
     if np.count_nonzero(mask) < 2:
         raise ValueError("Area-normalization interval contains fewer than two points")
-    area = float(np.trapezoid(y[mask], x[mask]))
+    area = float(np.trapezoid(np.clip(y[mask], 0.0, None), x[mask]))
     if not np.isfinite(area) or abs(area) <= np.finfo(float).eps:
         raise ValueError("Spectrum has zero or non-finite normalization area")
     return y / area
@@ -377,14 +385,10 @@ def load_reference_spectra_from_sources(
     data_root: Path,
     cache_directory: Path,
     bounds: Sequence[float],
-    grid_step_cm_inv: float,
-) -> tuple[np.ndarray, dict[str, np.ndarray]]:
-    """Load the local BSA spectrum and pinned NIST WebBook references."""
+) -> dict[str, tuple[np.ndarray, np.ndarray]]:
+    """Load references on their native axes, before baseline correction/resampling."""
     low, high = sorted(float(value) for value in bounds)
-    if grid_step_cm_inv <= 0:
-        raise ValueError("Reference grid step must be positive")
-    grid = np.arange(low, high + grid_step_cm_inv * 0.5, grid_step_cm_inv, dtype=np.float64)
-    spectra: dict[str, np.ndarray] = {}
+    spectra: dict[str, tuple[np.ndarray, np.ndarray]] = {}
     for name in required_names:
         entry = sources[name]
         source_type = entry.get("source_type")
@@ -405,24 +409,25 @@ def load_reference_spectra_from_sources(
             raise ValueError(f"Reference '{name}' has unsupported source_type={source_type!r}")
         if x[0] > low or x[-1] < high:
             raise ValueError(f"Reference '{name}' does not cover {low:g}-{high:g} cm^-1")
-        spectra[name] = np.interp(grid, x, y)
-    return grid, spectra
+        spectra[name] = (x, y)
+    return spectra
 
 
-def prepare_spectrum(
+def preprocess_native_spectrum(
     wavenumbers: np.ndarray,
     values: np.ndarray,
-    grid: np.ndarray,
     *,
     asls_lambda: float,
     asls_p: float,
     asls_iterations: int,
     analysis_bounds: Sequence[float],
     area_bounds: Sequence[float],
-    target_fwhm_cm_inv: float | None = None,
-    native_fwhm_cm_inv: float = 0.0,
-) -> np.ndarray:
-    """Crop, baseline-correct, interpolate, optionally broaden, and normalize."""
+) -> tuple[np.ndarray, np.ndarray]:
+    """Crop, apply AsLS and normalize on native spectral points.
+
+    Sample input uses nominal wavenumbers; calibration correction is applied
+    after this step. References retain their original sampling for AsLS.
+    """
     x = np.asarray(wavenumbers, dtype=np.float64)
     y = np.asarray(values, dtype=np.float64)
     analysis_mask = (x >= float(analysis_bounds[0])) & (x <= float(analysis_bounds[1]))
@@ -432,10 +437,7 @@ def prepare_spectrum(
     y = y[analysis_mask]
     order = np.argsort(x)
     corrected = y[order] - asls_baseline(y[order], asls_lambda, asls_p, asls_iterations)
-    prepared = interpolate_spectrum(x[order], corrected, grid)
-    if target_fwhm_cm_inv is not None:
-        prepared = broaden_to_fwhm(grid, prepared, target_fwhm_cm_inv, native_fwhm_cm_inv)
-    return area_normalize(grid, prepared, area_bounds)
+    return x[order], area_normalize(x[order], corrected, area_bounds)
 
 
 def fit_nonnegative_components(
@@ -443,7 +445,10 @@ def fit_nonnegative_components(
     observed: np.ndarray,
     references: Mapping[str, np.ndarray],
 ) -> NnlsResult:
-    """Fit nonnegative references plus a signed linear residual baseline."""
+    """Fit measured points with unit-area references and a signed linear baseline.
+
+    References are sampled and renormalized on the measured fit points.
+    """
     x = np.asarray(wavenumbers, dtype=np.float64)
     y = np.asarray(observed, dtype=np.float64)
     names = tuple(references)
@@ -453,12 +458,11 @@ def fit_nonnegative_components(
     scale = float(np.ptp(x))
     if scale == 0:
         raise ValueError("Fit wavenumbers must span a non-zero interval")
-    scaled_x = centered_x / scale
-    reference_matrix = np.column_stack([np.asarray(references[name], dtype=np.float64) for name in names])
-    design = np.column_stack((reference_matrix, np.ones_like(x), scaled_x))
+    reference_matrix = np.column_stack([area_normalize(x, references[name], (x[0], x[-1])) for name in names])
+    design = np.column_stack((reference_matrix, np.ones_like(x), centered_x))
     lower = np.concatenate((np.zeros(len(names)), [-np.inf, -np.inf]))
     upper = np.full(len(names) + 2, np.inf)
-    solution = lsq_linear(design, y, bounds=(lower, upper), method="trf")
+    solution = lsq_linear(design, y, bounds=(lower, upper), lsmr_tol="auto")
     if not solution.success:
         raise RuntimeError(f"NNLS fit failed: {solution.message}")
     coefficients = solution.x[: len(names)]

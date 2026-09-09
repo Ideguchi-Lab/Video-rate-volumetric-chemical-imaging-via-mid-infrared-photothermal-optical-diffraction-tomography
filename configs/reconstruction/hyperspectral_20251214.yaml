@@ -1,4 +1,4 @@
-# Accepted-paper MIP-ODT reconstruction for the 2025-12-14 COS-7 hyperspectral data.
+# Figure 3 MIP-ODT reconstruction for the 2025-12-14 COS-7 hyperspectral data.
 schema_version: 1
 dataset_id: hyperspectral_20251214
 
@@ -31,8 +31,10 @@ reconstruction:
   hermite_symmetry: true
   edge_size_px: 5
 
-  # Signal-fidelity settings frozen for the paper reconstruction.
-  use_skimage_unwrap: true
+  # Original Figure 3 analysis: Poisson unwrap and legacy spectrum placement.
+  # See src/mipodt_paper/legacy_odt.py for the placement convention.
+  use_skimage_unwrap: false
+  spectrum_placement: legacy
   gradient_correction: false
   offset_regions: null
 
@@ -45,6 +47,8 @@ output:
   # Relative to MIPODT_RECONSTRUCTION_DIR (defaults to ./reconstructions).
   directory: fig3_multispectral/mipodt
   filename_pattern: mipodt_r_{volume_id:03d}.npy
+  # Fig. 3 uses the positive real contrast for its selected off-axis sideband.
+  ri_change_sign: 1.0
 
 preview:
   volume_id: 20

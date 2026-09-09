@@ -1,6 +1,6 @@
 # Figure 4 — video-rate particle tracking and anomalous diffusion
 
-This directory reproduces the individual source images used to assemble Figure 4. It does not create a new composite.
+This directory reproduces the individual panels used to assemble Figure 4.
 The default path starts from the released reconstructed MIP-ODT volume and frozen probability map, then reruns
 connected-component detection, 3D linking, MSD fitting, and case bootstrap analysis.
 
@@ -13,7 +13,8 @@ git submodule update --init --recursive
 uv sync
 ```
 
-The two submodule commits are also recorded in `config.yaml`. Particle linking and total 3D MSD analysis use
+The two submodule commits are also recorded in `config.yaml`. ParticleTracker is pinned to its public v1.0.0 release.
+Particle linking and total 3D MSD analysis use
 `submodules/ParticleTracker` directly. `submodules/fastfilters` is fixed to the version used by the reconstruction
 environment.
 
@@ -51,7 +52,7 @@ and z planes onto the reconstructed crop. Labels and the manifest are needed onl
 
 ## Reproduce
 
-Validate the fast, complete path and then generate all images:
+Validate the inputs and generate all images:
 
 ```bash
 uv run figures/fig4_anomalous_diffusion/run.py --validate-only
@@ -70,9 +71,8 @@ Regenerate the probability map from reconstructed volumes and labels before runn
 uv run figures/fig4_anomalous_diffusion/run.py --recompute-probabilities
 ```
 
-The recomputation path is substantially slower and writes its normalized crop and regenerated probability map under
-`output/`. It implements the same frozen random-forest feature set and parameters recorded in `config.yaml`; it is a
-reproducibility audit, not the recommended routine path.
+Probability regeneration writes the normalized volume crop and probability map under `output/`, using the
+random-forest feature set and parameters in `config.yaml`. This step takes longer than analysis of the supplied map.
 
 ## Reconstruct the MIP-ODT sequence
 

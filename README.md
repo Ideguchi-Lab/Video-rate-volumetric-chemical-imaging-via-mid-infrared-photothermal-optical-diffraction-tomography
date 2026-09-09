@@ -1,63 +1,76 @@
 # Video-rate volumetric chemical imaging via mid-infrared photothermal optical diffraction tomography
 
-Code and data contracts for reproducing Figures 2–4 of the paper. Each figure
-has one entry point, with shared helpers in a small package.
+Scripts for reproducing Figures 2–4 of the paper. Each figure has one entry
+point, with shared reconstruction and analysis functions in `src/mipodt_paper/`.
 
 ## Layout
 
-```
+```text
 .
-├── figures/                 # one sub-directory per figure
+├── figures/                     # each figure contains run.py, config.yaml, README.md and output/
 │   ├── fig2_resolution/
 │   ├── fig3_multispectral/
 │   └── fig4_anomalous_diffusion/
-├── src/mipodt_paper/        # shared code: paths, config loader, plotting style
-├── submodules/               # commit-pinned public dependencies
+├── src/
+│   └── mipodt_paper/            # shared reconstruction and analysis code
+├── configs/
+│   └── reconstruction/         # acquisition-specific reconstruction parameters
+├── manifests/                  # frozen pairing and calibration CSVs
+├── scripts/
+│   ├── reconstruct_mipodt.py   # reconstruct sequential MIP-ODT volumes from TIFFs
+│   ├── reconstruct_static_odt.py # reconstruct static ODT volumes from TIFFs
+│   └── preview_mipodt.py       # preview reconstructed slices
+├── submodules/                 # commit-pinned public dependencies
 │   ├── ParticleTracker/
 │   └── fastfilters/
-├── scripts/
-│   ├── reconstruct_mipodt.py # reconstruct sequential MIP-ODT volumes
-│   ├── reconstruct_static_odt.py # reconstruct static ODT volumes
-│   └── preview_mipodt.py    # render quick-look XY planes
-└── data/                    # raw data (git-ignored), see data/README.md
+├── data/                       # seed TIFFs, reconstructed arrays and reference spectra (ignored)
+└── reconstructions/            # reconstruction outputs (ignored)
 ```
 
 ## Setup
 
 ```bash
 git submodule update --init --recursive
-uv sync                      # creates .venv with pinned deps (uv.lock)
+uv sync --locked             # creates .venv with pinned deps (uv.lock)
 ```
 
-Place the Zenodo data under `data/`, or set
+Reconstruction uses `muscopy[cuda]==1.0.2` from PyPI. ParticleTracker (`pt3d`)
+is installed from the public HTTPS submodule at its v1.0.0 release commit
+`2ef7a912a1b42ee1ff86b0adc6cec6fb53d7b9bc` for reproducible Figure 4 tracking.
+
+Place the data under `data/`, or set
 `MIPODT_DATA_DIR=/path/to/unpacked-data`.
 
-## Reproduce
+## Generate the main figure panels
+
+Run each figure from the repository root:
 
 ```bash
-uv run figures/fig2_resolution/run.py
-uv run figures/fig3_multispectral/run.py
-uv run figures/fig4_anomalous_diffusion/run.py
+uv run --locked figures/fig2_resolution/run.py
+uv run --locked figures/fig3_multispectral/run.py
+uv run --locked figures/fig4_anomalous_diffusion/run.py
 ```
 
-Each figure README records its output contract. Figure 2 preserves the
-individual files produced by the original z-slice and resolution-evaluation
-tools; other figure scripts may expose `--plot-only` for cached re-plotting.
+PNG/EPS panels and numerical results are written to each `figures/<figure>/output/`.
+These are the source panels for assembling Figures 2–4.
 
-Throughout this repository, 3D reconstruction from raw measurements is kept
-separate from downstream analysis of the reconstructed arrays. Figure 3
-follows this repository-wide convention and writes individual source figures
-rather than a new composite; see `figures/fig3_multispectral/README.md`.
-Figure 4 follows the same convention: released reconstructed volumes feed the
-public, commit-pinned tracking code and each source image is saved
-independently; see `figures/fig4_anomalous_diffusion/README.md`.
+| Figure | Contents | Detailed instructions |
+|---|---|---|
+| 2 | ODT/MIP-ODT slices, profiles, cross sections and resolution fits | [Fig. 2](figures/fig2_resolution/README.md) |
+| 3 | ODT ROIs, MIP-ODT slices, spectra and NNLS | [Fig. 3](figures/fig3_multispectral/README.md) |
+| 4 | Particle trajectories, MSD fits and diffusion distributions | [Fig. 4](figures/fig4_anomalous_diffusion/README.md) |
+
+The figure scripts use the distributed NPY arrays and, for Figure 4, the frozen
+probability map. Reconstruction from TIFF measurements is a separate step using
+`scripts/reconstruct_mipodt.py` and `scripts/reconstruct_static_odt.py`.
+The [Fig. 3 instructions](figures/fig3_multispectral/README.md) describe the
+reconstruction settings and BSA/NIST reference spectra required for its analysis.
 
 ## Reconstruct the sequential MIP-ODT datasets
 
-Sequential reconstruction starts from completed pre-analysis. The frozen
-pairing manifests identify same-angle MIR-ON/OFF holograms and remove failed
-illumination updates. The pre-analysis itself is intentionally outside the
-public reconstruction pipeline.
+Sequential reconstruction uses the supplied pairing manifests to select
+same-angle MIR-ON/OFF holograms. These manifests record the acquisition
+pre-analysis, including exclusion of failed illumination updates.
 
 Dataset names reflect their downstream role:
 
@@ -78,8 +91,9 @@ uv run scripts/reconstruct_mipodt.py \
   --validate-only
 ```
 
-Reconstruct one volume first. Output is a real `float32` array in `(x, y, z)`
-axis order and has the physical definition `delta_n_MIP = n_OFF - n_ON`.
+Reconstruct one volume first. Output is a real `float32` array in NumPy
+`(axis0, axis1, z)` order. The sign convention is acquisition-specific and
+recorded in each YAML and run manifest; Figure 3 uses `ri_change_sign: +1`.
 
 ```bash
 uv run scripts/reconstruct_mipodt.py \
@@ -113,14 +127,17 @@ software versions, pair counts, selected volume IDs, and correction settings.
 ## Development
 
 ```bash
-uv sync                        # dev group (ruff, pre-commit) is included by default
+uv sync --locked               # dev group (ruff, pre-commit) is included by default
 uv run pre-commit install      # once; hooks run on every commit
 uv run pre-commit run --all-files
 ```
 
-## Citation
+## Citation and distribution
 
-TODO: bibtex once published.
+The data and source archives have not yet been published on Zenodo. The paper
+citation, DOI and archive checksums will be recorded when assigned. Source
+archives must include both pinned submodules; a top-level Git archive omits them.
+See the [data layout](data/README.md).
 
 ## License
 

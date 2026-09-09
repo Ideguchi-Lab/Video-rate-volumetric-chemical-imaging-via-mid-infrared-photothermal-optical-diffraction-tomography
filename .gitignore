@@ -6,7 +6,7 @@ __pycache__/
 .ruff_cache/
 .pytest_cache/
 
-# Raw / large data (fetch via scripts/download_data.py)
+# Raw / large data (see data/README.md)
 data/*
 !data/README.md
 !data/.gitkeep

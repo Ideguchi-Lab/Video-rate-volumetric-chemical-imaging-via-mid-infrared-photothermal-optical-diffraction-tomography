@@ -21,9 +21,7 @@ the downstream resolution analysis can be checked independently.
 JAX_PLATFORMS=cpu uv run figures/fig2_resolution/run.py
 ```
 
-The script preserves the individual-file outputs of
-`z-slice-visualizer/results_fig1` and
-`resolution_evaluation/results-fig1` under `output/`:
+The script writes the following panels and numerical results under `output/`:
 
 - `odt_z_slices.{png,eps}` and `mipodt_z_slices.{png,eps}`
 - `odt_profiles_with_fit.{png,eps}` and `mipodt_profiles_with_fit.{png,eps}`
@@ -31,8 +29,6 @@ The script preserves the individual-file outputs of
 - `odt_results.json`, `mipodt_results.json`, and the four corresponding YAML configs
 - panel-only BMP files under `output/bmp/` (four z slices, three profiles,
   and two cross sections for each modality)
-
-No new composite `fig2.png` or `fig2.pdf` is assembled.
 
 ## Reproduce the MIP-ODT reconstruction
 
@@ -53,12 +49,10 @@ MIPODT_RECONSTRUCTION_DIR="$PWD/data" JAX_PLATFORMS=cpu \
   configs/reconstruction/fig2_resolution_20251202.yaml --volume 0 --overwrite
 ```
 
-The configuration uses muscopy 1.0.1's public API with linear Rytov,
+The configuration uses muscopy 1.0.2's public API with linear Rytov,
 Poisson phase unwrap, gradient correction off, offset correction off, and
-`truncate` Ewald embedding. CPU execution is sufficient for this single
-volume and avoids a CUDA-kernel compatibility issue observed on the GTX 1080
-Ti; it is not a host VRAM-capacity limitation. Add `--overwrite` only when
-intentionally preparing a replacement distributed array.
+`truncate` Ewald embedding. The commands above select CPU execution.
+Existing arrays are retained unless `--overwrite` is supplied.
 
 ## Frozen evaluation parameters
 
