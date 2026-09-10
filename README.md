@@ -1,7 +1,8 @@
 # Video-rate volumetric chemical imaging via mid-infrared photothermal optical diffraction tomography
 
-Scripts for reproducing Figures 2–4 of the paper. Each figure has one entry
-point, with shared reconstruction and analysis functions in `src/mipodt_paper/`.
+Scripts for reproducing Figures 2–4 and Supplementary Figure 2 of the paper.
+Each figure has one entry point, with shared reconstruction and analysis
+functions in `src/mipodt_paper/`.
 
 ## Layout
 
@@ -10,7 +11,8 @@ point, with shared reconstruction and analysis functions in `src/mipodt_paper/`.
 ├── figures/                     # each figure contains run.py, config.yaml, README.md and output/
 │   ├── fig2_resolution/
 │   ├── fig3_multispectral/
-│   └── fig4_anomalous_diffusion/
+│   ├── fig4_anomalous_diffusion/
+│   └── suppfig2_noise_std/
 ├── src/
 │   └── mipodt_paper/            # shared reconstruction and analysis code
 ├── configs/
@@ -49,18 +51,20 @@ Run each figure from the repository root:
 uv run --locked figures/fig2_resolution/run.py
 uv run --locked figures/fig3_multispectral/run.py
 uv run --locked figures/fig4_anomalous_diffusion/run.py
+uv run --locked figures/suppfig2_noise_std/run.py
 ```
 
 PNG/EPS panels and numerical results are written to each `figures/<figure>/output/`.
-These are the source panels for assembling Figures 2–4.
+These are the source panels for assembling Figures 2–4 and Supplementary Figure 2.
 
 | Figure | Contents | Detailed instructions |
 |---|---|---|
 | 2 | ODT/MIP-ODT slices, profiles, cross sections and resolution fits | [Fig. 2](figures/fig2_resolution/README.md) |
 | 3 | ODT ROIs, MIP-ODT slices, spectra and NNLS | [Fig. 3](figures/fig3_multispectral/README.md) |
 | 4 | Particle trajectories, MSD fits and diffusion distributions | [Fig. 4](figures/fig4_anomalous_diffusion/README.md) |
+| S2 | MIP-ODT noise STD slices without MIR irradiation and ROI noise floor | [Supp. Fig. 2](figures/suppfig2_noise_std/README.md) |
 
-The figure scripts use the distributed NPY arrays and, for Figure 4, the frozen
+The figure scripts use the distributed NPY arrays and, for Figure 4, the supplied
 probability map. Reconstruction from TIFF measurements is a separate step using
 `scripts/reconstruct_mipodt.py` and `scripts/reconstruct_static_odt.py`.
 The [Fig. 3 instructions](figures/fig3_multispectral/README.md) describe the
@@ -77,6 +81,7 @@ Dataset names reflect their downstream role:
 - `fig2_resolution_20251202`: one volume used for the Fig. 2 resolution validation
 - `anomalous_diffusion_20251224`: video-rate trajectory and anomalous-diffusion analysis
 - `hyperspectral_20251214`: wavelength-swept hyperspectral analysis
+- `noise_std_20251212`: MIR-off sequence used for the Supplementary Fig. 2 noise floor
 
 Arrange the downloaded data as described in `data/README.md`, then validate all
 inputs without starting a GPU reconstruction:

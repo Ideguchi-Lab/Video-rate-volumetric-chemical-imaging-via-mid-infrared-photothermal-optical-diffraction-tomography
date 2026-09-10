@@ -46,7 +46,7 @@ only reads volume 9 for the displayed slices. The complete 0–69 sequence is ne
 The 1,420 TIFF files are the holograms referenced by volume IDs 0–69 in
 `manifests/anomalous_diffusion_20251224_pairings.csv`. They are needed only to repeat MIP-ODT reconstruction.
 
-`region_1.h5` contains the frozen `exported_data` probability dataset as `float32`, shape
+`region_1.h5` contains the `exported_data` probability dataset as `float32`, shape
 `(70, 20, 340, 340, 2)`, and axis order `(t, z, y, x, class)`. Channel 1 is the target-particle probability.
 `region_1_lds.h5` contains the public manual labels in dataset `labels`; `manifest_subset.yaml` maps its subset frames
 and z planes onto the reconstructed crop. Labels and the manifest are needed only for the explicit recomputation path.

@@ -24,15 +24,22 @@ data/
 │   │   ├── odt_cell.npy
 │   │   └── raw/{sample,reference}/
 │   └── references/              # BSA FTIR + external NIST source definitions
-└── fig4_anomalous_diffusion/
+├── fig4_anomalous_diffusion/
 │   ├── sequential_mipodt/
 │   │   └── holograms/           # TIFFs used by volume IDs 000-069
 │   ├── mipodt/                  # real float32 (x,y,z), IDs 000-069
 │   ├── metadata/                # MIR-ON/OFF pairing CSV
 │   └── tracking/
-│       ├── region_1.h5          # frozen probability map (t,z,y,x,class)
+│       ├── region_1.h5          # particle-probability map (t,z,y,x,class)
 │       ├── region_1_lds.h5      # public manual labels
 │       └── manifest_subset.yaml # label subset -> volume crop mapping
+└── suppfig2_noise_std/
+    ├── noise_std/
+    │   └── std_result.npy       # voxel-wise noise STD (x,y,z) float32, MIR laser off
+    ├── metadata/                # pairing CSV of the MIR-off sequence
+    ├── sequential_mipodt/
+    │   └── holograms/           # 1,100 TIFFs used by MIR-off volume IDs 000-049
+    └── mipodt/                  # reconstructed MIR-off volumes, IDs 000-049 (generated)
 ```
 
 Each `figures/<fig>/README.md` lists the exact files it needs.
@@ -60,13 +67,14 @@ Figure 3 MIP-ODT slices and ROI spectra use the same volumes reconstructed
 from `fig3_multispectral/hyperspectral_raw/`. Static ODT is reconstructed from
 `fig3_multispectral/static_odt/raw/`.
 
-The Figure 4 archive includes reconstructed volumes so users can proceed
-directly to analysis. Its MIP-ODT arrays are reconstructed with muscopy 1.0.2;
-the configuration and software versions are recorded in `mipodt/run_manifest.yaml`.
-Tracking uses the frozen probability map from the paper analysis as a separate
-input. The labels and subset manifest support optional probability regeneration
-from the reconstructed volumes. See `figures/fig4_anomalous_diffusion/README.md`
-for shapes, axes, and generated outputs.
+The Figure 4 archive includes reconstructed MIP-ODT volumes, particle-probability
+maps, manual labels, and their subset mapping. Reconstruction settings and software
+versions are recorded in `mipodt/run_manifest.yaml`. See
+`figures/fig4_anomalous_diffusion/README.md` for data formats and analysis commands.
+
+The Supplementary Fig. 2 archive distributes the noise STD array computed from
+50 MIP-ODT volumes acquired with the MIR laser off, together with the
+holograms needed to regenerate it; see `figures/suppfig2_noise_std/README.md`.
 
 To verify the unpacked files, run `sha256sum -c SHA256SUMS` from this directory.
 

@@ -12,6 +12,8 @@ The dataset names describe their role in the paper:
   anomalous-diffusion analysis.
 - `hyperspectral_20251214`: wavelength-swept sequence used for hyperspectral
   analysis.
+- `noise_std_20251212`: sequence acquired with the MIR laser off, used for the
+  Supplementary Fig. 2 noise-floor estimate.
 
 `anomalous_diffusion_20251224_pairings.csv` contains the valid MIR-ON/OFF
 pairs used for the 2025-12-24 trajectory analysis.
@@ -29,6 +31,13 @@ Figure 3 static ODT reconstruction.
 
 `fig2_resolution_20251202_pairings.csv` freezes the 11 same-angle MIR-ON/OFF
 pairs used to regenerate the distributed `mipodt_r_000.npy`.
+
+`noise_std_20251212_pairings.csv` contains the same-angle hologram pairs of
+the 50 MIR-off volumes (IDs 0–49) averaged into the Supplementary Fig. 2 noise
+STD. The MIR laser was off for the whole run, so both columns are MIR-OFF
+holograms; column A takes the "MIR-ON" role in the reconstruction.
+`noise_std_20251212_volumes.csv` lists those 50 volume IDs as the default
+reconstruction selection.
 
 The sequential MIP-ODT pairing CSVs use these columns and fixed semantics:
 

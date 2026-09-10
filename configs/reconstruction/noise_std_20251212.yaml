@@ -1,0 +1,53 @@
+# Supplementary Fig. 2: sequential MIP-ODT reconstruction of the 2025-12-12
+# COS-7 acquisition recorded with the MIR laser off (noise-floor estimate).
+schema_version: 1
+dataset_id: noise_std_20251212
+
+acquisition:
+  frame_interval_s: null
+
+input:
+  image_dir: suppfig2_noise_std/sequential_mipodt/holograms
+  pairing_csv: manifests/noise_std_20251212_pairings.csv
+  # Its volume_id column defines the 50 volumes averaged by the noise analysis.
+  volume_manifest_csv: manifests/noise_std_20251212_volumes.csv
+
+optical:
+  objective_na: 1.2
+  illumination_na: 0.85
+  wavelength_nm: 532.0
+  camera_pixel_size_um: 9.0
+  magnification: 166.66666666666666
+  medium_refractive_index: 1.33
+  image_size_px: 1088
+  offaxis_center_px: [847, 226]
+
+reconstruction:
+  approximation: Rytov
+  linear_approximation: true
+  hermite_symmetry: true
+  edge_size_px: 5
+  # Poisson unwrap and legacy spectrum placement (see src/mipodt_paper/legacy_odt.py).
+  use_skimage_unwrap: false
+  spectrum_placement: legacy
+  gradient_correction: false
+  offset_regions: null
+  ewald_embedding_mode: truncate
+  integer_precision_bits: 16
+  float_precision_bits: 32
+  verbose: true
+
+output:
+  # With MIPODT_RECONSTRUCTION_DIR=data, this writes the volumes consumed by
+  # `figures/suppfig2_noise_std/run.py --compute-std`.
+  directory: suppfig2_noise_std/mipodt
+  filename_pattern: mipodt_r_{volume_id:03d}.npy
+  ri_change_sign: 1.0
+
+preview:
+  volume_id: 0
+  z_indices: [140, 134, 129, 124]
+  colormap: viridis
+  vmin: -0.0003
+  vmax: 0.0003
+  formats: [png, pdf]
