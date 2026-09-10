@@ -52,7 +52,7 @@ odt_slices:
     colors: {lipid_droplet: "#1f77b4", er_mixed: "#ff7f0e", nucleolus: "#2ca02c"}
 
 mipodt_slices:
-  # Use the same seed-reconstructed volumes as the ROI spectra, normalized once by power.
+  # Use the same reconstructed volumes as the ROI spectra, normalized once by power.
   source: reconstructed_volumes
   volume_ids: [25, 23, 14]
   z_indices: [135, 140]

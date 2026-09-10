@@ -1,6 +1,6 @@
 # Pre-analysis manifests
 
-These small files are frozen outputs of acquisition-specific pre-analysis and
+These files are outputs of acquisition-specific pre-analysis and
 are tracked with the code. Reconstruction starts here; it does not repeat MIR
 state identification or failed-SLM-update detection.
 
@@ -23,13 +23,13 @@ volumes used in the paper analysis. `hyperspectral_20251214_volumes.csv` maps
 each `volume_id` to its calibrated wavenumber, MIR power, and calibration
 timestamp.
 
-`fig2_resolution_static_pairs.csv` freezes the sample/reference ordering for
+`fig2_resolution_static_pairs.csv` records the sample/reference ordering for
 the 11-angle static ODT acquisition.
 
 `fig3_static_odt_pairs.csv` defines the sample/reference TIFF ordering for the
 Figure 3 static ODT reconstruction.
 
-`fig2_resolution_20251202_pairings.csv` freezes the 11 same-angle MIR-ON/OFF
+`fig2_resolution_20251202_pairings.csv` records the 11 same-angle MIR-ON/OFF
 pairs used to regenerate the distributed `mipodt_r_000.npy`.
 
 `noise_std_20251212_pairings.csv` contains the same-angle hologram pairs of

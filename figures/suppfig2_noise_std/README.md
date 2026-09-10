@@ -16,7 +16,8 @@ noise STD inside a central ROI.
 `std_result.npy` is computed from 50 MIR-off MIP-ODT volumes
 (`mipodt_r_000.npy` … `mipodt_r_049.npy`, shape `(535, 535, 267)`)
 reconstructed from the 2025-12-12 COS-7 acquisition. The Zenodo package also
-contains the 1,100 holograms used by those volumes under
+contains those 50 volumes under `suppfig2_noise_std/mipodt/`, the
+reconstruction settings in `mipodt/run_manifest.yaml`, and the 1,100 holograms under
 `suppfig2_noise_std/sequential_mipodt/holograms/`, and the pairing CSV under
 `suppfig2_noise_std/metadata/` and in the code repository's `manifests/`.
 
@@ -35,7 +36,9 @@ The script writes the following under `output/`:
 - `noise_std_3d_config.yaml`: the z-slice settings
 - `region_noise_mean.csv`: mean noise STD inside `x 80:470, y 80:470, z 117:147`
   (`4.27e-05` RI)
-- `run_manifest.yaml`: input checksum, ROI result and output list
+- `run_manifest.yaml`: input checksum, ROI result and output list; input paths are
+  relative to `path_root` (`data`, `output`, or `repository`). External inputs
+  are recorded by filename only (`path_root: external`).
 
 ## Reproduce the MIP-ODT reconstruction and the noise STD
 
@@ -50,7 +53,7 @@ MIPODT_RECONSTRUCTION_DIR="$MIPODT_DATA_DIR" \
 uv run figures/suppfig2_noise_std/run.py --compute-std
 ```
 
-`manifests/noise_std_20251212_pairings.csv` freezes the hologram pairs of
+`manifests/noise_std_20251212_pairings.csv` records the hologram pairs of
 volume IDs 0–49 in the standard `MipIndex, ImageIndexA/B, ImagePathA/B`
 layout; column A takes the "MIR-ON" role of the reconstruction although the
 MIR laser was off. `manifests/noise_std_20251212_volumes.csv` selects those 50
@@ -64,7 +67,7 @@ volume in `data/suppfig2_noise_std/mipodt/` with float32 accumulation, saves
 `--std-output "$MIPODT_DATA_DIR/suppfig2_noise_std/noise_std/std_result.npy"`
 to write the array at the path consumed by the default analysis.
 
-## Frozen evaluation parameters
+## Analysis parameters
 
 - noise ROI `x 80:470, y 80:470, z 117:147` (NumPy half-open indices)
 - z slices `[140, 134, 129, 124]`, crop `x, y = 80:470`

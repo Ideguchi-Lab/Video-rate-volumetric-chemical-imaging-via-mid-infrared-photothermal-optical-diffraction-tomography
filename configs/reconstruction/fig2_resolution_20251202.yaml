@@ -24,7 +24,7 @@ reconstruction:
   linear_approximation: true
   hermite_symmetry: true
   edge_size_px: 5
-  # The array archived by the original Fig. 2 analysis used Poisson unwrap.
+  # Use Poisson phase unwrapping.
   use_skimage_unwrap: false
   gradient_correction: false
   offset_regions: null
@@ -34,11 +34,11 @@ reconstruction:
   verbose: true
 
 output:
-  # With MIPODT_RECONSTRUCTION_DIR=data, this writes the NPY at the exact
+  # With MIPODT_RECONSTRUCTION_DIR=data, this writes the NPY at the
   # location included in the Zenodo package and consumed by the figure step.
   directory: fig2_resolution/mipodt
   filename_pattern: mipodt_r_{volume_id:03d}.npy
-  # Preserve the sign convention of the original Fig. 2 analysis array.
+  # RI-change sign convention for the Fig. 2 array.
   ri_change_sign: 1.0
 
 preview:

@@ -23,7 +23,7 @@ import yaml
 from mipodt_paper import figure_output_dir
 from mipodt_paper.config import load_config
 from mipodt_paper.noise import Region, region_means, voxel_std, write_region_means_csv
-from mipodt_paper.paths import DATA_DIR, data_path
+from mipodt_paper.paths import DATA_DIR, REPO_ROOT, data_path
 from mipodt_paper.zslices import ZSliceSpec, ZSliceStyle, render_z_slices
 
 OUT = figure_output_dir(__file__)
@@ -132,12 +132,23 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _std_reference(std_path: Path) -> dict[str, str]:
+    """Describe the STD input without recording machine-specific directories."""
+    for root, label in ((DATA_DIR, "data"), (OUT, "output"), (REPO_ROOT, "repository")):
+        try:
+            relative = std_path.resolve().relative_to(root.resolve())
+        except ValueError:
+            continue
+        return {"path": relative.as_posix(), "path_root": label}
+    return {"path": std_path.name, "path_root": "external"}
+
+
 def _write_manifest(std_path: Path, computed: bool, rows: list[dict[str, Any]], outputs: list[Path]) -> Path:
     manifest = {
         "figure": "suppfig2_noise_std",
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "noise_std": {
-            "path": str(std_path),
+            **_std_reference(std_path),
             "sha256": _sha256(std_path),
             "source": "computed from MIR-off volumes" if computed else "distributed array",
             "expected_shape": list(_expected_shape()),
@@ -181,10 +192,7 @@ def main() -> None:
     for row in rows:
         print(f"{row['name']}: mean noise STD = {row['mean']:.6e} RI over {row['count']} voxels")
 
-    try:
-        input_label = str(std_path.relative_to(DATA_DIR))
-    except ValueError:
-        input_label = str(std_path)
+    input_label = _std_reference(std_path)["path"]
     spec, style = _z_slice_spec(input_label)
     outputs = render_z_slices(std, spec, style, OUT)
     outputs.append(csv_path)

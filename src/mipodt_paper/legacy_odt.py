@@ -1,6 +1,6 @@
 """Legacy spectral placement for the pinned muscopy 1.0.2 API.
 
-The original Figure 3 analysis used the spectrum placement reproduced here.
+This placement is selected by the reconstruction configuration.
 For the reconstruction parameters used here, the 2D spectra start at an array index one smaller
 along both axes than in muscopy 1.0.2's standard placement before the inverse FFT.
 Scattering calculations and volume synthesis use muscopy 1.0.2.
@@ -18,7 +18,7 @@ from muscopy.odt import (
 
 
 def odt_with_legacy_placement(on_spectra, off_spectra, params: ODTParameters, config: ODTConfig):
-    """Reconstruct with the original spectrum placement and otherwise muscopy arithmetic."""
+    """Reconstruct with the configured spectrum placement and muscopy arithmetic."""
     params.verify_parameters()
     config.precision.validate()
     spectrums = []

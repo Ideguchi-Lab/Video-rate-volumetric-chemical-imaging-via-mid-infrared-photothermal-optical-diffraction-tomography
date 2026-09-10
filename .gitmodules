@@ -1,6 +1,3 @@
 [submodule "submodules/ParticleTracker"]
 	path = submodules/ParticleTracker
 	url = https://github.com/Ideguchi-Lab/ParticleTracker.git
-[submodule "submodules/fastfilters"]
-	path = submodules/fastfilters
-	url = https://github.com/Ideguchi-Lab/fastfilters.git

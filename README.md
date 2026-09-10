@@ -17,15 +17,14 @@ functions in `src/mipodt_paper/`.
 │   └── mipodt_paper/            # shared reconstruction and analysis code
 ├── configs/
 │   └── reconstruction/         # acquisition-specific reconstruction parameters
-├── manifests/                  # frozen pairing and calibration CSVs
+├── manifests/                  # pairing and calibration CSVs
 ├── scripts/
 │   ├── reconstruct_mipodt.py   # reconstruct sequential MIP-ODT volumes from TIFFs
 │   ├── reconstruct_static_odt.py # reconstruct static ODT volumes from TIFFs
 │   └── preview_mipodt.py       # preview reconstructed slices
-├── submodules/                 # commit-pinned public dependencies
-│   ├── ParticleTracker/
-│   └── fastfilters/
-├── data/                       # seed TIFFs, reconstructed arrays and reference spectra (ignored)
+├── submodules/                 # commit-pinned tracking dependency
+│   └── ParticleTracker/
+├── data/                       # TIFF holograms, reconstructed arrays and reference spectra (ignored)
 └── reconstructions/            # reconstruction outputs (ignored)
 ```
 
@@ -141,7 +140,7 @@ uv run pre-commit run --all-files
 
 The data and source archives have not yet been published on Zenodo. The paper
 citation, DOI and archive checksums will be recorded when assigned. Source
-archives must include both pinned submodules; a top-level Git archive omits them.
+archives must include the pinned ParticleTracker submodule; a top-level Git archive omits it.
 See the [data layout](data/README.md).
 
 ## License

@@ -6,19 +6,17 @@ particle-probability map for tracking and diffusion analysis.
 
 ## Setup
 
-Clone the public dependencies at their recorded commits and create the locked environment:
+Clone ParticleTracker at its recorded commit and create the locked environment:
 
 ```bash
 git submodule update --init --recursive
-uv sync
+uv sync --locked
 ```
 
-The two submodule commits are also recorded in `config.yaml`. ParticleTracker is pinned to its public v1.0.0 release.
-Particle linking and total 3D MSD analysis use
-`submodules/ParticleTracker` directly. `submodules/fastfilters` is fixed to the version used by the reconstruction
-environment.
+ParticleTracker is pinned to its v1.0.0 release commit, recorded in `config.yaml`.
+Particle linking and total 3D MSD analysis use `submodules/ParticleTracker`.
 
-## Data contract
+## Data formats
 
 Place the Zenodo files under `MIPODT_DATA_DIR` (default: `data/`) as follows:
 

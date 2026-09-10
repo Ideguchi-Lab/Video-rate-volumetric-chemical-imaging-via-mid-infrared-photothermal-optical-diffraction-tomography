@@ -33,7 +33,7 @@ class SubsetMapping:
 
 
 def read_subset_mapping(path: Path, region_name: str) -> SubsetMapping:
-    """Read the frozen annotation subset manifest."""
+    """Read the annotation subset manifest."""
     with path.open(encoding="utf-8") as handle:
         manifest = yaml.safe_load(handle) or {}
     regions = [entry for entry in manifest.get("regions", []) if entry.get("name") == region_name]
@@ -57,7 +57,7 @@ def volume_paths(directory: Path, pattern: str, frame_ids: Sequence[int]) -> lis
 
 
 def validate_volume(path: Path, expected_shape: Sequence[int]) -> None:
-    """Validate the public real-float32 ``(x, y, z)`` volume contract."""
+    """Validate the real-float32 ``(x, y, z)`` volume layout."""
     volume = np.load(path, mmap_mode="r", allow_pickle=False)
     if volume.shape != tuple(expected_shape):
         raise ValueError(f"Unexpected shape for {path}: {volume.shape}, expected {tuple(expected_shape)}")
@@ -66,7 +66,7 @@ def validate_volume(path: Path, expected_shape: Sequence[int]) -> None:
 
 
 def crop_xyz_to_zyx(volume: np.ndarray, crop: Mapping[str, Sequence[int]]) -> np.ndarray:
-    """Transpose an ``(x, y, z)`` reconstruction and apply the frozen crop."""
+    """Transpose an ``(x, y, z)`` reconstruction and apply the configured crop."""
     zyx = np.transpose(np.real(volume), (2, 1, 0))
     return zyx[
         slice(*crop["z"]),
@@ -82,7 +82,7 @@ def export_normalized_crop(
     percentiles: Sequence[float],
     dataset_name: str = "data",
 ) -> Path:
-    """Refactor the original two-pass percentile normalization into one helper."""
+    """Normalize the volume crop using percentile limits computed across all frames."""
     low, high = float("inf"), float("-inf")
     for path in paths:
         volume = np.load(path, mmap_mode="r", allow_pickle=False)
@@ -113,7 +113,7 @@ def export_normalized_crop(
 
 
 def build_feature_volume(volume_zyx: np.ndarray, scales: Sequence[float]) -> np.ndarray:
-    """Build the raw/Gaussian/LoG/gradient feature stack used in the original RF fallback."""
+    """Build raw, Gaussian, Laplacian-of-Gaussian, and gradient features for random-forest classification."""
     volume = volume_zyx.astype(np.float32, copy=False)
     features = [volume]
     for sigma in scales:
@@ -158,7 +158,7 @@ def regenerate_probabilities(
     output_path: Path,
     settings: Mapping[str, Any],
 ) -> Path:
-    """Regenerate the frozen probability-map format from public labels and volumes."""
+    """Generate particle-probability maps from the supplied labels and volumes."""
     mapping = read_subset_mapping(manifest_path, str(settings["region_name"]))
     with h5py.File(labels_path, "r") as labels_handle:
         labels = np.asarray(labels_handle[str(settings["labels_dataset"])])
@@ -220,7 +220,7 @@ def regenerate_probabilities(
 
 
 def validate_probability_file(path: Path, dataset_name: str, expected_shape: Sequence[int]) -> None:
-    """Validate the frozen probability HDF5 contract without loading it in full."""
+    """Validate the probability HDF5 layout without loading it in full."""
     with h5py.File(path, "r") as handle:
         if dataset_name not in handle:
             raise ValueError(f"Dataset {dataset_name!r} not found in {path}")
@@ -300,7 +300,7 @@ def link_and_analyze(detections: pd.DataFrame, settings: Mapping[str, Any]) -> t
         tracks=tracks,
         track_stats=compute_track_stats(tracks, config.input.voxel_size),
         config=config,
-        input_info={"source": "frozen probability map", "axis_order": "tzyx"},
+        input_info={"source": "supplied probability map", "axis_order": "tzyx"},
     )
     diffusion = settings["diffusion"]
     analysis = analyze_diffusion(
@@ -374,7 +374,7 @@ def particle_track(tracks: pd.DataFrame, particle_id: int) -> pd.DataFrame:
 
 
 def component_msd(track: pd.DataFrame, voxel_size_um: Mapping[str, float], dt: float, max_lag: int) -> pd.DataFrame:
-    """Compute the component-wise and total MSD table used by the original selected-track script."""
+    """Compute component-wise and total MSD for a particle trajectory."""
     coordinates = track[["x", "y", "z"]].to_numpy(dtype=float)
     coordinates = coordinates * np.asarray([voxel_size_um["x"], voxel_size_um["y"], voxel_size_um["z"]])
     records = []
@@ -400,7 +400,7 @@ def component_msd(track: pd.DataFrame, voxel_size_um: Mapping[str, float], dt: f
 def fit_power_law(
     time: np.ndarray, msd: np.ndarray, fit_range: Sequence[float], divisor: float
 ) -> dict[str, float | int]:
-    """Fit ``MSD = divisor * D * tau**alpha`` using the frozen pt3d lag convention."""
+    """Fit ``MSD = divisor * D * tau**alpha`` using the pt3d lag convention."""
     n_with_zero = len(msd) + 1
     start_lag = max(1, int(n_with_zero * float(fit_range[0])))
     end_lag = min(n_with_zero, max(start_lag + 2, int(n_with_zero * float(fit_range[1]))))
@@ -425,7 +425,7 @@ def case_bootstrap(
     ci_level: float,
     seed: int,
 ) -> dict[str, float | int]:
-    """Case-bootstrap log-log fit points, preserving the original per-particle method."""
+    """Case-bootstrap the log-log fit points for one particle."""
     n = len(msd)
     start = max(1, int(n * float(fit_range[0])))
     stop = min(n, max(start + 2, int(n * float(fit_range[1]))))
@@ -461,7 +461,7 @@ def case_bootstrap(
 
 
 def bootstrap_table(analysis: Any, settings: Mapping[str, Any]) -> pd.DataFrame:
-    """Compute the frozen case-bootstrap summary for every accepted particle."""
+    """Compute a case-bootstrap summary for every accepted particle."""
     bootstrap = settings["bootstrap"]
     records = []
     for particle_id, result in sorted(analysis.msd_per_particle.items()):

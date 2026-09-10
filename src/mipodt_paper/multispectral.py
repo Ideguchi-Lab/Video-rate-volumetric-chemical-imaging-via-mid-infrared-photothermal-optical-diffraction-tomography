@@ -77,7 +77,7 @@ class NnlsResult:
 
 
 def validate_real_float32_volume(volume: np.ndarray, expected_shape: Sequence[int], *, label: str) -> None:
-    """Validate the public reconstruction contract without copying an array."""
+    """Validate the reconstruction array layout without copying an array."""
     if tuple(volume.shape) != tuple(expected_shape):
         raise ValueError(f"{label}: expected shape {tuple(expected_shape)}, got {volume.shape}")
     if volume.dtype != np.dtype(np.float32):
@@ -159,7 +159,7 @@ def validate_volume_files(paths: Mapping[int, Path], expected_shape: Sequence[in
 def roi_mean(volume: np.ndarray, roi: Roi) -> float:
     """Return the real-valued mean inside a validated half-open ROI."""
     roi.validate(volume.shape)
-    # Match the paper analysis by averaging in the stored dtype (float32).
+    # Average in the stored dtype (float32).
     return float(np.mean(np.real(volume[roi.selection])))
 
 
@@ -196,8 +196,6 @@ def asls_baseline(values: np.ndarray, lam: float = 1e5, p: float = 0.01, iterati
         raise ValueError("AsLS input must be a finite one-dimensional array with at least three values")
     if lam <= 0 or not 0 < p < 1 or iterations < 1:
         raise ValueError("AsLS requires lambda > 0, 0 < p < 1, and iterations >= 1")
-    # Preserve the paper analysis's sparse representation and multiplication order:
-    # equivalent algebra can change the ill-conditioned solve at roundoff level.
     difference = sparse.diags([1.0, -2.0, 1.0], [0, 1, 2], shape=(y.size - 2, y.size))
     weights = np.ones(y.size, dtype=np.float64)
     baseline = np.zeros_like(y)
@@ -240,7 +238,6 @@ def broaden_to_fwhm(
     additional_fwhm = np.sqrt(target_fwhm_cm_inv**2 - native_fwhm_cm_inv**2)
     if additional_fwhm == 0:
         return y.copy()
-    # FWHM-to-sigma conversion uses the rounded constant from the paper analysis.
     sigma_points = additional_fwhm * (1.0 / 2.35482) / spacing[0]
     return gaussian_filter1d(y, sigma_points, mode="nearest")
 

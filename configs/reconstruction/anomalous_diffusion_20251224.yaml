@@ -1,4 +1,4 @@
-# Accepted-paper MIP-ODT reconstruction for the 2025-12-24 COS-7 anomalous-diffusion data.
+# MIP-ODT reconstruction for the 2025-12-24 COS-7 anomalous-diffusion data.
 schema_version: 1
 dataset_id: anomalous_diffusion_20251224
 
@@ -29,12 +29,12 @@ reconstruction:
   hermite_symmetry: true
   edge_size_px: 5
 
-  # These three values reproduce the source-edited analysis environment.
+  # Phase unwrapping and correction settings.
   use_skimage_unwrap: true
   gradient_correction: false
   offset_regions: null
 
-  # v0.7 used integer truncation; v1.0.1 exposes it as an explicit mode.
+  # Map Ewald coordinates to integer indices by truncation.
   ewald_embedding_mode: truncate
   integer_precision_bits: 16
   float_precision_bits: 32
@@ -46,7 +46,7 @@ output:
   filename_pattern: mipodt_r_{volume_id:03d}.npy
 
 preview:
-  # Volume and planes used by the original anomalous-diffusion quick-look configuration.
+  # Volume and z planes shown in the preview.
   volume_id: 9
   z_indices: [125, 131]
   colormap: inferno

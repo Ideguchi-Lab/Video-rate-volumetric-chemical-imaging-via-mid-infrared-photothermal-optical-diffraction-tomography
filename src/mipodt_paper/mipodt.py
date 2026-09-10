@@ -45,7 +45,7 @@ class OpticalConfig:
 
 @dataclass(frozen=True, slots=True)
 class AlgorithmConfig:
-    """Signal-fidelity settings used for the accepted-paper reconstruction."""
+    """Reconstruction settings used for the paper figures."""
 
     approximation: str
     linear_approximation: bool
@@ -69,7 +69,7 @@ class AlgorithmConfig:
         if self.offset_regions is not None:
             raise ValueError("Offset correction must be disabled (offset_regions: null)")
         if self.ewald_embedding_mode != EwaldEmbeddingMode.TRUNCATE.value:
-            raise ValueError("The paper reconstruction pipeline requires legacy 'truncate' Ewald embedding")
+            raise ValueError("The paper reconstruction pipeline requires 'truncate' Ewald embedding")
         if self.edge_size_px < 0:
             raise ValueError("edge_size_px must be non-negative")
         if self.spectrum_placement not in ("muscopy", "legacy"):
@@ -357,11 +357,11 @@ def reconstruct_static_odt_volume(
 
 
 def _portable_path(path: Path, root: Path) -> str:
-    """Prefer a path relative to its configured root in run manifests."""
+    """Record a relative path, or only the filename for an external input."""
     try:
-        return path.relative_to(root).as_posix()
+        return path.resolve().relative_to(root.resolve()).as_posix()
     except ValueError:
-        return str(path)
+        return path.name
 
 
 def effective_manifest(config: MIPODTRunConfig) -> dict[str, Any]:
@@ -395,7 +395,7 @@ def effective_manifest(config: MIPODTRunConfig) -> dict[str, Any]:
             "volume_manifest_csv": (
                 None if config.volume_manifest_csv is None else _portable_path(config.volume_manifest_csv, REPO_ROOT)
             ),
-            "legacy_pairing_semantics": "ImagePathA=MIR-ON, ImagePathB=MIR-OFF",
+            "pairing_semantics": "ImagePathA=MIR-ON, ImagePathB=MIR-OFF",
         },
         "optical": dataclasses.asdict(config.optical),
         "reconstruction": dataclasses.asdict(config.algorithm),

@@ -35,11 +35,9 @@ def _resolve_image_path(image_dir: Path, value: str, *, row_number: int) -> Path
 
 
 def load_pairing_csv(csv_path: Path, image_dir: Path, *, require_images: bool = True) -> list[MIPPair]:
-    """Load the legacy 2025-12-24 pairing CSV.
+    """Load a pairing CSV with ``ImagePathA`` as MIR-ON and ``ImagePathB`` as MIR-OFF.
 
-    The pre-analysis defined ``ImagePathA`` as MIR-ON and ``ImagePathB`` as
-    MIR-OFF. The semantic names are assigned here so this convention does not
-    leak into the reconstruction code.
+    For MIR-off noise acquisitions, both columns contain MIR-OFF holograms.
     """
     required_columns = {"MipIndex", "ImageIndexA", "ImageIndexB", "ImagePathA", "ImagePathB"}
     if not csv_path.is_file():

@@ -69,7 +69,7 @@ def _cache_paths() -> dict[str, Path]:
 
 
 def validate_inputs(*, plot_only: bool, recompute_probabilities: bool) -> dict[str, Any]:
-    """Validate the selected input contract without running analysis."""
+    """Validate the selected input files without running analysis."""
     if CFG.get("schema_version") != 1:
         raise ValueError("Unsupported Figure 4 configuration schema")
     paths = _paths()
@@ -95,7 +95,7 @@ def validate_inputs(*, plot_only: bool, recompute_probabilities: bool) -> dict[s
                 raise FileNotFoundError(f"Probability-regeneration input is missing: {paths[key]}")
     else:
         if not paths["probability"].is_file():
-            raise FileNotFoundError(f"Frozen probability map is missing: {paths['probability']}")
+            raise FileNotFoundError(f"Supplied probability map is missing: {paths['probability']}")
         validate_probability_file(
             paths["probability"],
             data["probability_dataset"],
@@ -113,7 +113,7 @@ def _extract_slices(path: Path) -> dict[str, np.ndarray]:
 
 
 def compute(validated: Mapping[str, Any], *, recompute_probabilities: bool) -> dict[str, Any]:
-    """Run frozen-probability detection, pt3d tracking, and diffusion analysis."""
+    """Detect particles in probability maps, link tracks with pt3d, and analyze diffusion."""
     paths = validated["paths"]
     data = CFG["data"]
     if recompute_probabilities:

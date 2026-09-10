@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reconstruct sequential MIP-ODT volumes from a frozen pairing manifest.
+"""Reconstruct sequential MIP-ODT volumes from a pairing manifest.
 
 Examples
 --------

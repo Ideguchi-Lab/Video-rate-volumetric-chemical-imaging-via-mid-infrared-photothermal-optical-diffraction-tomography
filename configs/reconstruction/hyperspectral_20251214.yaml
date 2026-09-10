@@ -31,7 +31,7 @@ reconstruction:
   hermite_symmetry: true
   edge_size_px: 5
 
-  # Original Figure 3 analysis: Poisson unwrap and legacy spectrum placement.
+  # Poisson phase unwrapping and legacy spectrum placement.
   # See src/mipodt_paper/legacy_odt.py for the placement convention.
   use_skimage_unwrap: false
   spectrum_placement: legacy

@@ -1,7 +1,6 @@
 """Reproduce the individual Fig. 2 source outputs from the 2025-12-02 arrays.
 
-The output contract follows ``z-slice-visualizer/results_fig1`` and
-``resolution_evaluation/results-fig1`` rather than assembling a new composite.
+Save z slices, profiles, cross sections, and Gaussian-fit results as individual outputs.
 
 Usage:
     uv run figures/fig2_resolution/run.py
@@ -49,7 +48,7 @@ def _real_values(data: np.ndarray, selection: tuple[object, object, object], off
 
 
 def _save_fig_as_bmp(fig: plt.Figure, output_path: Path, *, dpi: int = 300) -> None:
-    """Save a Matplotlib figure as the legacy 24-bit BMP output."""
+    """Save a Matplotlib figure as a 24-bit BMP."""
     with BytesIO() as buffer:
         fig.savefig(buffer, format="png", dpi=dpi, bbox_inches="tight")
         buffer.seek(0)
@@ -212,7 +211,7 @@ def _z_slice_config(name: str) -> dict[str, Any]:
 
 
 def create_z_slice_outputs(name: str, volume: np.ndarray) -> None:
-    """Create one legacy z-slice figure, EPS, four BMPs, and its config."""
+    """Create one z-slice figure, EPS, four BMPs, and its config."""
     global_settings = CFG["z_slices"]
     settings = global_settings[name]
     indices = global_settings["z_indices"]
@@ -309,7 +308,7 @@ def create_profile_outputs(
     profiles: tuple[ProfileData, ...],
     fits: dict[str, GaussianFitResult],
 ) -> None:
-    """Create the legacy three-panel profile plot and three panel-only BMPs."""
+    """Create the three-panel profile plot and three panel-only BMPs."""
     resolution = CFG["resolution"]
     settings = resolution[name]
     profile_settings = resolution["profile"]
@@ -424,7 +423,7 @@ def _add_crosshair(
 
 
 def create_cross_section_outputs(name: str, volume: np.ndarray) -> None:
-    """Create the legacy XY/XZ plot and two panel-only BMPs."""
+    """Create the XY/XZ plot and two panel-only BMPs."""
     resolution = CFG["resolution"]
     settings = resolution[name]
     font = resolution["font"]
@@ -609,7 +608,7 @@ def _resolution_config(name: str) -> dict[str, Any]:
 
 
 def save_resolution_results(name: str, fits: dict[str, GaussianFitResult]) -> None:
-    """Save the legacy per-dataset JSON result and YAML configuration."""
+    """Save the per-dataset JSON result and YAML configuration."""
     resolution = CFG["resolution"]
     settings = resolution[name]
     pixel_xy = float(resolution["pixel_size_xy_m"])
@@ -651,7 +650,7 @@ def save_resolution_results(name: str, fits: dict[str, GaussianFitResult]) -> No
 
 
 def create_resolution_outputs(name: str, volume: np.ndarray) -> dict[str, GaussianFitResult]:
-    """Evaluate resolution and write all files produced by the legacy script."""
+    """Evaluate resolution and save plots, numerical results, and configurations."""
     resolution = CFG["resolution"]
     pixel_sizes = (
         resolution["pixel_size_xy_m"],

@@ -1,9 +1,4 @@
-"""Resolution-profile extraction and the Gaussian fit used for Fig. 2.
-
-The fitting routine intentionally preserves the parameterization of the
-original ``resolution_evaluation`` script.  Changing optimizers or bounds can
-move the fitted FWHM by several nanometres for these short profiles.
-"""
+"""Resolution-profile extraction and the Gaussian fit used for Fig. 2."""
 
 from __future__ import annotations
 
@@ -56,7 +51,7 @@ def extract_profiles(
     *,
     value_offset: float = 0.0,
 ) -> tuple[ProfileData, ProfileData, ProfileData]:
-    """Extract the inclusive X/Y/Z profiles used by the original analysis."""
+    """Extract X/Y/Z profiles including both endpoints of each specified range."""
     cx, cy, cz = center
     rx, ry, rz = ranges
     px_x, px_y, px_z = pixel_sizes_m
@@ -85,7 +80,7 @@ def extract_profiles(
 
 
 def fit_gaussian_1d(profile: ProfileData) -> GaussianFitResult:
-    """Fit one profile using the exact bounded transform of the legacy code."""
+    """Fit a Gaussian profile with bounded center and width parameters."""
     x = jnp.asarray(profile.positions_m, dtype=jnp.float64)
     y = jnp.asarray(profile.values, dtype=jnp.float64)
 

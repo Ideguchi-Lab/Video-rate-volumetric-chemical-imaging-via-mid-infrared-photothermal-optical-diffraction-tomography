@@ -689,9 +689,9 @@ def _write_manifest(validated: Mapping[str, Any], outputs: list[Path]) -> Path:
             portable_file_info(paths["volume_metadata"], REPO_ROOT),
         ]
     )
-    seed_provenance = paths["mipodt_directory"] / "run_manifest.yaml"
-    if seed_provenance.exists():
-        input_files.append(portable_file_info(seed_provenance, DATA_DIR))
+    reconstruction_provenance = paths["mipodt_directory"] / "run_manifest.yaml"
+    if reconstruction_provenance.exists():
+        input_files.append(portable_file_info(reconstruction_provenance, DATA_DIR))
     remote_references = []
     for name, entry in sorted(validated["reference_metadata"].items()):
         if entry.get("source_type") == "local_jasco_csv":
@@ -704,8 +704,10 @@ def _write_manifest(validated: Mapping[str, Any], outputs: list[Path]) -> Path:
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "axis_convention": CFG["array_convention"],
         "mipodt_slice_source": CFG["mipodt_slices"]["source"],
-        "seed_reconstruction_provenance": (
-            portable_file_info(seed_provenance, DATA_DIR)["path"] if seed_provenance.exists() else None
+        "reconstruction_provenance": (
+            portable_file_info(reconstruction_provenance, DATA_DIR)["path"]
+            if reconstruction_provenance.exists()
+            else None
         ),
         "nnls_fit_sampling": "measured_points_after_nominal_axis_preprocessing",
         "volume_ids": _range_ids(CFG["data"]["expected_volume_ids"]),

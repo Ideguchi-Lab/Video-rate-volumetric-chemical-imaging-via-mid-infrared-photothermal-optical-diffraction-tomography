@@ -39,7 +39,7 @@ data/
     ├── metadata/                # pairing CSV of the MIR-off sequence
     ├── sequential_mipodt/
     │   └── holograms/           # 1,100 TIFFs used by MIR-off volume IDs 000-049
-    └── mipodt/                  # reconstructed MIR-off volumes, IDs 000-049 (generated)
+    └── mipodt/                  # reconstructed MIR-off volumes, IDs 000-049
 ```
 
 Each `figures/<fig>/README.md` lists the exact files it needs.
@@ -54,14 +54,13 @@ the corresponding CSV files under `manifests/`.
 Copies are included in `fig2_resolution/metadata/`. Static ODT reconstruction
 uses `configs/reconstruction/fig2_static_odt.yaml`.
 
-The pairing CSVs and hyperspectral volume-to-wavenumber mapping are frozen
-outputs of pre-analysis and are tracked under `manifests/`. In the legacy
-pairing format, `ImagePathA` means MIR-ON and `ImagePathB` means MIR-OFF.
+The pairing CSVs and hyperspectral volume-to-wavenumber mapping are
+outputs of pre-analysis tracked under `manifests/`. In these CSVs, `ImagePathA` means MIR-ON and `ImagePathB` means MIR-OFF.
 
 The Figure 3 archive includes only the 42 hyperspectral volumes with calibrated
 wavenumber and power records (IDs 0–41). See
 `figures/fig3_multispectral/README.md` for the exact reference-spectrum schema,
-static-ODT contract, and generated outputs.
+static-ODT data format, and generated outputs.
 
 Figure 3 MIP-ODT slices and ROI spectra use the same volumes reconstructed
 from `fig3_multispectral/hyperspectral_raw/`. Static ODT is reconstructed from
@@ -73,8 +72,8 @@ versions are recorded in `mipodt/run_manifest.yaml`. See
 `figures/fig4_anomalous_diffusion/README.md` for data formats and analysis commands.
 
 The Supplementary Fig. 2 archive distributes the noise STD array computed from
-50 MIP-ODT volumes acquired with the MIR laser off, together with the
-holograms needed to regenerate it; see `figures/suppfig2_noise_std/README.md`.
+50 MIP-ODT volumes acquired with the MIR laser off, together with those
+volumes and the holograms needed to regenerate them; see `figures/suppfig2_noise_std/README.md`.
 
 To verify the unpacked files, run `sha256sum -c SHA256SUMS` from this directory.
 

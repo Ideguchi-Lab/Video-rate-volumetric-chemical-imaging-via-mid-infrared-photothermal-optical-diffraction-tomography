@@ -1,4 +1,4 @@
-"""Figure 3 NNLS panels adapted from the paper's original spectral analysis.
+"""Figure 3 NNLS panels.
 
 Each row shows the measured spectrum, fit and residual; component contributions;
 and coefficient fractions.

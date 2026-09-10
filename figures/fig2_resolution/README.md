@@ -67,7 +67,7 @@ Static ODT uses Rytov with linear refractive-index conversion, scikit-image
 phase unwrapping, legacy spectrum placement, and gradient and offset corrections
 disabled. Illumination NA is 1.0 and the off-axis center is `(840, 228)`.
 
-## Frozen evaluation parameters
+## Analysis parameters
 
 - center `(X, Y, Z) = (284, 202, 124)`
 - inclusive half ranges `(5, 5, 7)` pixels

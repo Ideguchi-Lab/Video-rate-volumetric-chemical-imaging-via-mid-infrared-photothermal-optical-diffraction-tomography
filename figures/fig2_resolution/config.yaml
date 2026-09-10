@@ -84,7 +84,7 @@ z_slices:
     colorbar_scientific: true
     crop_xy: [0, 500, 0, 500]
     cmap: Greys_r
-    # The legacy values were specified before adding the 1.33 RI offset.
+    # Display limits before adding the 1.33 medium RI offset.
     vmin_raw: -0.002
     vmax_raw: 0.012
     roi_annotations:

@@ -3,7 +3,6 @@ figure_id: fig4_anomalous_diffusion
 
 provenance:
   particle_tracker_commit: 2ef7a912a1b42ee1ff86b0adc6cec6fb53d7b9bc
-  fastfilters_commit: 48844dc3a661dc7bf365114e60e2a0917e294d5d
 
 data:
   # Paths are relative to MIPODT_DATA_DIR.

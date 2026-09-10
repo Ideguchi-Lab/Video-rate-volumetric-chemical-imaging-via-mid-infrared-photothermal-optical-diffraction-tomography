@@ -80,7 +80,7 @@ Reference coefficients are nonnegative; the residual linear baseline is signed.
 Component curves exclude that baseline. Ratios are coefficient fractions, not
 concentrations.
 
-MIP-ODT slices are extracted from the same seed-reconstructed volumes used
+MIP-ODT slices are extracted from the same reconstructed volumes used
 for ROI spectra and divided by the recorded laser power. For each row, the
 display range is zero to the maximum of its two visible crops; the off-resonance
 row has a minimum
@@ -123,8 +123,7 @@ The settings for **MIP-ODT** are:
 - `offset_regions: null`, `gradient_correction: false`
 - `output.ri_change_sign: 1.0`
 
-The original Figure 3 analysis used the **legacy spectrum placement**,
-reproduced by [`legacy_odt.py`](../../src/mipodt_paper/legacy_odt.py) with
+Figure 3 uses `spectrum_placement: legacy`, implemented in [`legacy_odt.py`](../../src/mipodt_paper/legacy_odt.py) with
 muscopy 1.0.2. For the Figure 3 parameters, the 2D spectra start one pixel
 lower in array index along both axes than in muscopy 1.0.2's standard
 placement before the inverse FFT. Scattering calculations and volume synthesis
