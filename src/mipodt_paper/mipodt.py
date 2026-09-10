@@ -347,7 +347,8 @@ def reconstruct_static_odt_volume(
 
     sample_spectra = [extract(path) for path in sample_paths]
     reference_spectra = [extract(path) for path in reference_paths]
-    refractive_index, _ = odt(sample_spectra, reference_spectra, params, odt_config)
+    reconstruct = odt_with_legacy_placement if algorithm.spectrum_placement == "legacy" else odt
+    refractive_index, _ = reconstruct(sample_spectra, reference_spectra, params, odt_config)
     result = np.asarray(jax.device_get(jnp.real(refractive_index) - params.n_sol), dtype=np.float32)
     expected_shape = (2 * params.aperturesize_px + 1, 2 * params.aperturesize_px + 1, params.freq_axial_extent_px)
     if result.shape != expected_shape:

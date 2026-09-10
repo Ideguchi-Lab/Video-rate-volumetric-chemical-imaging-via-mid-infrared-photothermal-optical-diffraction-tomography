@@ -9,7 +9,6 @@ __pycache__/
 # Raw / large data (see data/README.md)
 data/*
 !data/README.md
-!data/.gitkeep
 
 # Generated figure outputs (keep the directory, drop the contents)
 figures/*/output/*

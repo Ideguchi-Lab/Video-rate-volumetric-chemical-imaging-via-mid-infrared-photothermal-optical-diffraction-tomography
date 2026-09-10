@@ -12,13 +12,14 @@ the X/Y/Z Gaussian-fit FWHM values used in the paper analysis.
 
 The Zenodo package also contains the 11 sample and 11 reference holograms
 under `fig2_resolution/static_odt/`, plus the 22 sequential holograms under
-`fig2_resolution/sequential_mipodt/holograms/`. Thus the reconstruction and
-the downstream resolution analysis can be checked independently.
+`fig2_resolution/sequential_mipodt/holograms/`. The pairing CSVs are included
+under `fig2_resolution/metadata/` and in the code repository's `manifests/`.
+The commands below reconstruct static ODT and MIP-ODT separately.
 
 ## Reproduce the downstream analysis
 
 ```bash
-JAX_PLATFORMS=cpu uv run figures/fig2_resolution/run.py
+uv run figures/fig2_resolution/run.py
 ```
 
 The script writes the following panels and numerical results under `output/`:
@@ -36,7 +37,7 @@ By default the reconstruction is kept separate from the distributed NPY and
 written to `reconstructions/fig2_resolution/mipodt/mipodt_r_000.npy`:
 
 ```bash
-JAX_PLATFORMS=cpu uv run scripts/reconstruct_mipodt.py \
+uv run scripts/reconstruct_mipodt.py \
   configs/reconstruction/fig2_resolution_20251202.yaml --volume 0
 ```
 
@@ -44,15 +45,27 @@ For preparation of the Zenodo data directory, the same command can write the
 generated array at the path consumed by the downstream analysis:
 
 ```bash
-MIPODT_RECONSTRUCTION_DIR="$PWD/data" JAX_PLATFORMS=cpu \
+MIPODT_RECONSTRUCTION_DIR="$PWD/data" \
   uv run scripts/reconstruct_mipodt.py \
   configs/reconstruction/fig2_resolution_20251202.yaml --volume 0 --overwrite
 ```
 
 The configuration uses muscopy 1.0.2's public API with linear Rytov,
 Poisson phase unwrap, gradient correction off, offset correction off, and
-`truncate` Ewald embedding. The commands above select CPU execution.
+`truncate` Ewald embedding.
 Existing arrays are retained unless `--overwrite` is supplied.
+
+## Reproduce the static ODT reconstruction
+
+```bash
+uv run scripts/reconstruct_static_odt.py \
+  configs/reconstruction/fig2_static_odt.yaml
+```
+
+The output defaults to `reconstructions/fig2_resolution/static_odt/odt_cell.npy`.
+Static ODT uses Rytov with linear refractive-index conversion, scikit-image
+phase unwrapping, legacy spectrum placement, and gradient and offset corrections
+disabled. Illumination NA is 1.0 and the off-axis center is `(840, 228)`.
 
 ## Frozen evaluation parameters
 

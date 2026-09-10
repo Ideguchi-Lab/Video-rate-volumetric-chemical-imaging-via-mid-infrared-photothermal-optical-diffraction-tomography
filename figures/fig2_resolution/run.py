@@ -4,7 +4,7 @@ The output contract follows ``z-slice-visualizer/results_fig1`` and
 ``resolution_evaluation/results-fig1`` rather than assembling a new composite.
 
 Usage:
-    JAX_PLATFORMS=cpu uv run figures/fig2_resolution/run.py
+    uv run figures/fig2_resolution/run.py
 """
 
 from __future__ import annotations

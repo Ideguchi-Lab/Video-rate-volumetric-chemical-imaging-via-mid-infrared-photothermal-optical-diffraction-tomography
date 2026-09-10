@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import os
+from dataclasses import asdict
 from datetime import datetime, timezone
 from importlib.metadata import version
 from pathlib import Path
@@ -83,6 +84,7 @@ def _load_config(path: Path) -> tuple[dict[str, Any], OpticalConfig, AlgorithmCo
         integer_precision_bits=int(algorithm_raw["integer_precision_bits"]),
         float_precision_bits=int(algorithm_raw["float_precision_bits"]),
         verbose=bool(algorithm_raw.get("verbose", False)),
+        spectrum_placement=str(algorithm_raw.get("spectrum_placement", "muscopy")),
     )
     algorithm.validate_paper_profile()
     pairing_csv = _resolve(REPO_ROOT, raw["input"]["pairing_csv"], "input.pairing_csv")
@@ -141,6 +143,8 @@ def main() -> None:
         "shape": list(volume.shape),
         "pair_count": len(sample_paths),
         "configuration": args.config.name,
+        "optical": asdict(optical),
+        "reconstruction": asdict(algorithm),
         "output": output_path.name,
         "software": {"muscopy": version("muscopy")},
     }

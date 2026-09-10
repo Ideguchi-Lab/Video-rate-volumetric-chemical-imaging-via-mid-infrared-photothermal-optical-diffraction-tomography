@@ -5,11 +5,13 @@ here, or point `MIPODT_DATA_DIR` at it, with the layout below.
 
 ```
 data/
+├── SHA256SUMS                  # checksums of all distributed files
 ├── fig2_resolution/
 │   ├── mipodt/
 │   │   └── mipodt_r_000.npy
 │   ├── sequential_mipodt/
 │   │   └── holograms/   # 22 TIFF holograms (11 MIR-ON/OFF pairs)
+│   ├── metadata/                # static and MIR-ON/OFF pairing CSVs
 │   └── static_odt/
 │       ├── odt_cell.npy
 │       ├── sample/       # 11 TIFF holograms
@@ -42,6 +44,8 @@ array in the Zenodo package is generated from the 22 sequential holograms by
 `configs/reconstruction/fig2_resolution_20251202.yaml`. The sample/reference
 ordering for static ODT and the MIR-ON/OFF ordering for MIP-ODT are tracked in
 the corresponding CSV files under `manifests/`.
+Copies are included in `fig2_resolution/metadata/`. Static ODT reconstruction
+uses `configs/reconstruction/fig2_static_odt.yaml`.
 
 The pairing CSVs and hyperspectral volume-to-wavenumber mapping are frozen
 outputs of pre-analysis and are tracked under `manifests/`. In the legacy
@@ -57,10 +61,14 @@ from `fig3_multispectral/hyperspectral_raw/`. Static ODT is reconstructed from
 `fig3_multispectral/static_odt/raw/`.
 
 The Figure 4 archive includes reconstructed volumes so users can proceed
-directly to tracking. Its frozen probability map is the default reproducible
-input; the labels and subset manifest enable regeneration of that map from
-the reconstructed volumes. See `figures/fig4_anomalous_diffusion/README.md`
+directly to analysis. Its MIP-ODT arrays are reconstructed with muscopy 1.0.2;
+the configuration and software versions are recorded in `mipodt/run_manifest.yaml`.
+Tracking uses the frozen probability map from the paper analysis as a separate
+input. The labels and subset manifest support optional probability regeneration
+from the reconstructed volumes. See `figures/fig4_anomalous_diffusion/README.md`
 for shapes, axes, and generated outputs.
+
+To verify the unpacked files, run `sha256sum -c SHA256SUMS` from this directory.
 
 To keep raw and reconstructed arrays outside this checkout:
 

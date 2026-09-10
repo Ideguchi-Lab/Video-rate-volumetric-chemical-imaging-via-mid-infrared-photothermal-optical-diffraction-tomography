@@ -1,8 +1,8 @@
 # Figure 4 — video-rate particle tracking and anomalous diffusion
 
 This directory reproduces the individual panels used to assemble Figure 4.
-The default path starts from the released reconstructed MIP-ODT volume and frozen probability map, then reruns
-connected-component detection, 3D linking, MSD fitting, and case bootstrap analysis.
+Figure 4 uses reconstructed MIP-ODT volumes for slice images and the supplied
+particle-probability map for tracking and diffusion analysis.
 
 ## Setup
 
@@ -29,7 +29,8 @@ fig4_anomalous_diffusion/
 ├── mipodt/
 │   ├── mipodt_r_000.npy
 │   ├── ...
-│   └── mipodt_r_069.npy
+│   ├── mipodt_r_069.npy
+│   └── run_manifest.yaml        # reconstruction settings and software versions
 ├── metadata/
 │   └── anomalous_diffusion_20251224_pairings.csv
 └── tracking/

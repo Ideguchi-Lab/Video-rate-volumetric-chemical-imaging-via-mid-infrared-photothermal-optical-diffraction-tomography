@@ -1,7 +1,7 @@
-"""Fig3 spectral placement compatibility for the pinned muscopy 1.0.2 API.
+"""Legacy spectral placement for the pinned muscopy 1.0.2 API.
 
 The original Figure 3 analysis used the spectrum placement reproduced here.
-For its reconstruction parameters, the 2D spectra start one pixel lower in
+For the Figure 2 and 3 reconstruction parameters, the 2D spectra start one pixel lower in
 array index along both axes than in muscopy 1.0.2's standard placement before
 the inverse FFT.
 Scattering calculations and volume synthesis use muscopy 1.0.2.
